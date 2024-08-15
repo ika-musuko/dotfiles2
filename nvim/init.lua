@@ -2,21 +2,16 @@
 require 'paq' {
   'savq/paq-nvim',
 
-  'rebelot/kanagawa.nvim',
-  'andreasvc/vim-256noir',
+  'zenbones-theme/zenbones.nvim',
 
   'nvim-treesitter/nvim-treesitter',
-  --'hiphish/rainbow-delimiters.nvim',
   'andymass/vim-matchup',
 
   'tpope/vim-surround',
   'tpope/vim-repeat',
   'tpope/vim-abolish',
   'tpope/vim-sleuth',
-  'dkarter/bullets.vim',
-
   'vimlab/split-term.vim',
-
   'folke/zen-mode.nvim',
 
   'iamcco/markdown-preview.nvim',
@@ -32,12 +27,10 @@ require 'paq' {
   'jonsmithers/vim-html-template-literals',
   'HerringtonDarkholme/yats.vim',
   'Shougo/context_filetype.vim',
-  '73/vim-klog',
   'sophacles/vim-bundle-mako',
   'hashivim/vim-terraform',
   'tweekmonster/django-plus.vim',
   'Glench/Vim-Jinja2-Syntax',
-  'mattn/emmet-vim',
 
   'neovim/nvim-lspconfig',
 
@@ -55,8 +48,30 @@ require 'paq' {
 }
 
 -- plugin settings
+require('telescope').setup {
+  defaults = {
+    layout_config = {
+      horizontal = {
+        height = 0.4
+      },
+      vertical = {
+        height = 0.4
+      },
+    }
+  },
+  pickers = {
+    find_files = {
+      disable_devicons = true
+    },
+    colorscheme = {
+      enable_preview = true,
+    },
+  },
+}
+
 -- nnn
 vim.g['nnn#replace_netrw'] = 1
+vim.g['nnn#command'] = 'nnn -C'
 
 -- copilot
 vim.g.copilot_no_tab_map = true
@@ -92,43 +107,6 @@ vim.api.nvim_create_autocmd("FileType", {
     vim.bo.indentexpr = "htmldjango#indent()"
   end,
 })
-
--- rainbow delimiters
---[[
-local rainbow_delimiters = require('rainbow-delimiters')
----
-require('rainbow-delimiters.setup').setup({
-    strategy = {
-        [''] = rainbow_delimiters.strategy['global'],
-        vim = rainbow_delimiters.strategy['local'],
-    },
-    query = {
-        [''] = 'rainbow-delimiters',
-        lua = 'rainbow-blocks',
-    },
-    priority = {
-        [''] = 110,
-        lua = 210,
-    },
-    highlight = {
-        'RainbowDelimiterCyan',
-        'RainbowDelimiterBlue',
-        'RainbowDelimiterViolet',
-    },
-})
-
--- HACK: temporary fix to ensure rainbow delimiters are highlighted in real-time
-vim.api.nvim_create_autocmd(
-   "BufRead",
-   {
-      desc = "Ensure treesitter is initialized???",
-      callback = function()
-         -- if this fails then it means no parser is available for current buffer
-         pcall(vim.treesitter.start)
-      end,
-   }
-)
-]]--
 
 -- lsp
 vim.diagnostic.config({
@@ -192,9 +170,9 @@ lsp.html.setup(coq.lsp_ensure_capabilities({
   on_attach = on_attach,
 }))
 
-lsp.pylsp.setup(coq.lsp_ensure_capabilities({
-  on_attach = on_attach,
-}))
+--lsp.pylsp.setup(coq.lsp_ensure_capabilities({
+--  on_attach = on_attach,
+--}))
 
 --
 --[[
@@ -216,27 +194,32 @@ lsp.pyright.setup(coq.lsp_ensure_capabilities({
 ]]--
 
 -- cursor settings
-vim.opt.guicursor = {
-  'n-v-c:block',       -- Use a block cursor in normal, visual, and command modes
-  'i-ci-ve:ver25',     -- Use a vertical bar cursor in insert and replace modes
-  'r-cr:hor20',        -- Use a horizontal bar cursor in replace mode
-  'o:hor50',           -- Use a wide horizontal bar in operator-pending mode
-  'a:blinkwait700-blinkoff400-blinkon250-Cursor/lCursor', -- Blinking cursor with specific timing
-  'sm:block-blinkwait175-blinkoff150-blinkon175'          -- Use a blinking block cursor in select mode
-}
+vim.opt.cursorline = true
+vim.opt.cursorlineopt = 'number'
+
+--vim.opt.guicursor = {
+--  'n-v-c:block',       -- Use a block cursor in normal, visual, and command modes
+--  'i-ci-ve:ver25',     -- Use a vertical bar cursor in insert and replace modes
+--  'r-cr:hor20',        -- Use a horizontal bar cursor in replace mode
+--  'o:hor50',           -- Use a wide horizontal bar in operator-pending mode
+--  'a:blinkwait700-blinkoff400-blinkon250-Cursor/lCursor', -- Blinking cursor with specific timing
+--  'sm:block-blinkwait175-blinkoff150-blinkon175'          -- Use a blinking block cursor in select mode
+--}
 
 -- color scheme
 --vim.cmd('colorscheme kanagawa') -- just an init so we have kanagawa
 --local kanagawa = require("kanagawa.colors").setup()
 
-vim.opt.background = 'dark'
 vim.o.termguicolors = true
-vim.cmd('colorscheme kanagawa')
+vim.opt.background = 'dark'
+vim.cmd('colorscheme forestbones')
+vim.cmd('set t_Co=256')
 vim.cmd('highlight Normal ctermbg=NONE guibg=NONE')
 vim.cmd('highlight LineNr ctermbg=NONE guibg=NONE')
+vim.cmd('highlight Cursor ctermbg=8')
 
---vim.cmd('highlight! Number guifg=#dd8899')
---vim.cmd('highlight! String guifg=#889988')
+vim.cmd('highlight! Comment ctermfg=8')
+vim.cmd('highlight! LineNr ctermfg=15')
 vim.cmd('highlight! link @string.special.url.html String')
 vim.cmd('highlight! link @tag.html Type')
 vim.cmd('highlight! link @tag.delimiter.html Type')
@@ -359,3 +342,4 @@ vim.keymap.set('', '<leader>c', ':ToggleCenter<CR>')
 vim.keymap.set('n', '<leader>8', ':r!~/Scripts/agenda yesterday today<CR>')
 vim.keymap.set('n', '<leader>9', ':r!~/Scripts/agenda today tomorrow<CR>')
 vim.keymap.set('n', '<leader>0', ':r!~/Scripts/agenda tomorrow 2days<CR>')
+vim.keymap.set('n', '<leader>2', ':r!~/Scripts/agenda 2days 3days<CR>')
