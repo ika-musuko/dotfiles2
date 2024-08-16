@@ -2,6 +2,7 @@
 require 'paq' {
   'savq/paq-nvim',
 
+  'rktjmp/lush.nvim',
   'zenbones-theme/zenbones.nvim',
 
   'nvim-treesitter/nvim-treesitter',
@@ -11,12 +12,14 @@ require 'paq' {
   'tpope/vim-repeat',
   'tpope/vim-abolish',
   'tpope/vim-sleuth',
+
   'vimlab/split-term.vim',
+  'szw/vim-maximizer',
   'folke/zen-mode.nvim',
+  'shortcuts/no-neck-pain.nvim',
+  'ten3roberts/window-picker.nvim',
 
   'iamcco/markdown-preview.nvim',
-
-  'shortcuts/no-neck-pain.nvim',
 
   'nvim-lua/plenary.nvim', -- needed for telescope
   'nvim-telescope/telescope-fzf-native.nvim',
@@ -61,13 +64,23 @@ require('telescope').setup {
   },
   pickers = {
     find_files = {
-      disable_devicons = true
+      disable_devicons = false
     },
     colorscheme = {
       enable_preview = true,
     },
   },
 }
+
+-- window-picker
+require'window-picker'.setup{
+  keys = 'asdfvrcexwzqgbthnyjmukilop',
+  swap_shift = true,
+  exclude = { qf = true, NvimTree = true, aerial = true },
+  hide_other_statuslines = false,
+}
+vim.api.nvim_set_keymap('n', '<leader>[', ':WindowPick<CR>', {})
+vim.api.nvim_set_keymap('n', '<leader>]', ':WindowSwap<CR>', {})
 
 -- nnn
 vim.g['nnn#replace_netrw'] = 1
@@ -278,6 +291,9 @@ vim.keymap.set('', '<leader>e', ':Term<CR>')
 
 -- zen mode
 vim.keymap.set('', '<leader>g', ':ZenMode<CR>')
+
+-- maximizer
+vim.keymap.set('', '<leader>z', ':MaximizerToggle<CR>')
 
 -- config keybindings
 local initFile = '~/.config/nvim/init.lua'
