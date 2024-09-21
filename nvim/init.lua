@@ -353,8 +353,13 @@ vim.keymap.set('', '<C-h>', '<C-w>h')
 vim.keymap.set('', '<C-j>', '<C-w>j')
 vim.keymap.set('', '<C-k>', '<C-w>k')
 vim.keymap.set('', '<C-l>', '<C-w>l')
-
 vim.keymap.set('', '<C-p>', '<C-w>p')
+
+vim.keymap.set('i', '<C-h>', '<Esc><C-w>h')
+vim.keymap.set('i', '<C-j>', '<Esc><C-w>j')
+vim.keymap.set('i', '<C-k>', '<Esc><C-w>k')
+vim.keymap.set('i', '<C-l>', '<Esc><C-w>l')
+vim.keymap.set('i', '<C-p>', '<Esc><C-w>p')
 
 -- horizontal scroll
 vim.keymap.set('', '<S-ScrollWheelUp>',   '4zh')
