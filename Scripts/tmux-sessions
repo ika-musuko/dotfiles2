@@ -1,3 +1,13 @@
 #!/bin/bash
-tmux list-sessions -F "#{session_id} [#{session_name}#{?session_attached,*,}]" \
-  | sort | cut -d' ' -f 2 | tr '\n' ' '
+
+get_sessions() {
+  tmux_sessions=$(tmux list-sessions -F "#{session_id} #{?session_attached,#[bg=blue]#[fg=black],#[bg=default]#[fg=gray]}[#{session_name}#{?session_attached,,}]#[bg=default]")
+
+  IFS=$'\n'
+  for session in $tmux_sessions; do
+    echo "${session:1}"
+  done
+  unset IFS
+}
+
+get_sessions | sort -n | cut -d' ' -f 2 | tr '\n' ' '
