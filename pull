@@ -1,0 +1,4 @@
+#!/bin/bash
+cp -r ~/.config/nvim/init.lua nvim
+cp -r ~/.config/kitty/kitty.conf kitty
+cp ~/.tmux.conf .
