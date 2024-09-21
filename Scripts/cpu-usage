@@ -1,0 +1,6 @@
+#!/bin/bash
+load=$(sysctl -n vm.loadavg | awk '{print $2}')
+total=$(sysctl -n hw.ncpu)
+percent=$(echo "scale=0; $load * 100 / $total" | bc)
+echo "${percent}% ($load)"
+

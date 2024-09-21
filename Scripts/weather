@@ -1,0 +1,100 @@
+#!/bin/bash
+
+# File to read the weather data from
+WEATHER_DATA_FILE="/tmp/weather_data.json"
+
+# Extract the relevant weather data for the next 6 hours
+next_6_hours=$(jq -r '.hourly.time[0:24] | @csv' "$WEATHER_DATA_FILE")
+temperatures=$(jq -r '.hourly.temperature[0:24] | @csv' "$WEATHER_DATA_FILE")
+precipitation=$(jq -r '.hourly.precipitation[0:24] | @csv' "$WEATHER_DATA_FILE")
+
+# Process the times, temperatures, and weather codes into arrays
+IFS=',' read -r -a times <<< "$next_6_hours"
+IFS=',' read -r -a temps <<< "$temperatures"
+IFS=',' read -r -a precips <<< "$precipitation"
+
+# Get the current time rounded to the nearest hour
+current_time=$(gdate +%s)
+rounded_time=$(gdate -d @$(( (current_time + 1800) / 3600 * 3600 )) +%H:00)
+
+# Function to determine the appropriate emoji based on the weather code
+get_weather_emoji() {
+  local weather_code=$1
+  case $weather_code in
+    0) echo "快晴" ;;   # Clear sky (Kaisei)
+    1) echo "晴れ" ;;   # Mainly clear (Hare)
+    2) echo "曇り" ;;   # Partly cloudy (Kumori)
+    3) echo "曇天" ;;   # Overcast (Donten)
+    45) echo "霧" ;;    # Fog (Kiri)
+    48) echo "霧氷" ;;  # Depositing rime fog (Muhyō)
+    51) echo "小雨" ;;  # Light drizzle (Kosame)
+    53) echo "雨" ;;    # Moderate drizzle (Ame)
+    55) echo "強い雨" ;; # Dense drizzle (Tsuyoi Ame)
+    56) echo "氷雨" ;;  # Freezing drizzle light (Hiyori Ame)
+    57) echo "冷雨" ;;  # Freezing drizzle dense (Rei Ame)
+    61) echo "小雨" ;;  # Light rain (Kosame)
+    63) echo "中雨" ;;  # Moderate rain (Chū Ame)
+    65) echo "大雨" ;;  # Heavy rain (Ō Ame)
+    66) echo "氷雨" ;;  # Freezing rain light (Hiyori Ame)
+    67) echo "強氷雨" ;;# Freezing rain heavy (Kyō Hiyori Ame)
+    71) echo "小雪" ;;  # Light snow (Koyuki)
+    73) echo "中雪" ;;  # Moderate snow (Chūyuki)
+    75) echo "大雪" ;;  # Heavy snow (Ōyuki)
+    77) echo "雪粒" ;;  # Snow grains (Yukitsubu)
+    80) echo "小雨" ;;  # Light showers (Kosame)
+    81) echo "中雨" ;;  # Moderate showers (Chū Ame)
+    82) echo "大雨" ;;  # Heavy showers (Ō Ame)
+    85) echo "小雪" ;;  # Snow showers light (Koyuki)
+    86) echo "大雪" ;;  # Snow showers heavy (Ōyuki)
+    95) echo "雷雨" ;;  # Thunderstorm light/moderate (Raiu)
+    96) echo "雹雷" ;;  # Thunderstorm with slight hail (Hyōrai)
+    99) echo "大雹雷" ;;# Thunderstorm with heavy hail (Ōhyōrai)
+    *) echo "不明" ;;   # Unknown weather code (Fumei)
+  esac
+}
+
+# Function to format the output for each time slot
+format_output() {
+    time=$1
+    temp=$2
+    precip=$(printf "%.1f" "$3")
+
+    # Round the temperature to the nearest whole number
+    rounded_temp=$(echo "${temp}" | awk '{printf("%.0f\n", $1)}')
+
+    if [ -z "$time" ]; then
+        printf "%s°C %smm\n" "${rounded_temp}" "${precip}"
+    else
+        hour=$(echo "${time}" | awk -F'T' '{print $2}' | awk -F':' '{print $1}' | awk '$0*=1')
+        printf " /  %s時 %s°C %smm\n" "${hour}" "${rounded_temp}" "${precip}"
+    fi
+}
+
+index=0
+for i in "${!times[@]}"; do
+    if [[ "$(echo "${times[i]}" | awk -F'T' '{print $2}' | awk -F':' '{print $1":00"}')" == "$rounded_time" ]]; then
+        index=$i
+        break
+    fi
+done
+
+output=""
+for j in 0 1 4; do
+    time_index=$((index + j))
+    time=${times[time_index]}
+    temp=${temps[time_index]}
+    precip=${precips[time_index]}
+
+    # Format the output for the current time slot
+    if [ $j -eq 0 ]; then
+        formatted_output=$(format_output "" "$temp" "$precip")
+    else
+        formatted_output=$(format_output "$time" "$temp" "$precip")
+    fi
+
+    # Append to the final output string
+    output+="$formatted_output"
+done
+
+# Output the final formatted string
+echo $output

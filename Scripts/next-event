@@ -1,0 +1,22 @@
+#!/bin/sh
+format_date() {
+  date=$1
+  today=$(gdate +%Y-%m-%d)
+  tomorrow=$(gdate -d '1 day' +%Y-%m-%d)
+  if [ "$date" = "$today" ]; then
+    echo "今日"
+  elif [ "$date" = "$tomorrow" ]; then
+    echo "明日"
+  else
+    gdate -d "$date" +%a
+  fi
+}
+
+agenda=$(gcalcli agenda now --tsv | head -1 | tail -1)
+
+date=$(format_date "$(echo "$agenda" | cut -f1)")
+start_time=$(echo "$agenda" | cut -f2)
+end_time=$(echo "$agenda" | cut -f4)
+description=$(echo "$agenda" | cut -f5-)
+
+echo  "$date" "$start_time"~"$end_time" "$description"

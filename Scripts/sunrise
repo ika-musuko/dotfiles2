@@ -1,0 +1,23 @@
+#!/bin/bash
+DATA_FILE="/tmp/sun_times.json"
+TIMEZONE="Asia/Tokyo"
+
+[[ ! -f $DATA_FILE ]] && { echo "Run the daemon first!"; exit 1; }
+
+sunrise_local=$(jq -r '.sunrise' $DATA_FILE | TZ="$TIMEZONE" gdate -f - +"%H:%M")
+sunset_local=$(jq -r '.sunset' $DATA_FILE | TZ="$TIMEZONE" gdate -f - +"%H:%M")
+current_epoch=$(TZ="$TIMEZONE" gdate +%s)
+sunset_epoch=$(TZ="$TIMEZONE" gdate -d "$sunset_local" +%s)
+
+seconds_until_sunset=$((sunset_epoch - current_epoch))
+hours_until_sunset=$((seconds_until_sunset / 3600))
+minutes_until_sunset=$((seconds_until_sunset % 3600 / 60))
+if [ ${seconds_until_sunset} -lt 0 ]; then
+  sign='-'
+else
+  sign=''
+fi
+
+until_sunset=$(printf "%s%02d:%02d" "${sign}" "${hours_until_sunset#-}" "${minutes_until_sunset#-}")
+
+echo "${sunrise_local}~${sunset_local} (${until_sunset})"

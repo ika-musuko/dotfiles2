@@ -1,0 +1,27 @@
+#!/bin/bash
+
+API_URL="https://api.sunrise-sunset.org/json?lat=35.682839&lng=139.759455&formatted=0"
+DATA_FILE="/tmp/sun_times.json"
+TIMEZONE="Asia/Tokyo"
+LOCK_FILE="/tmp/sunrise_daemon.lock"
+
+fetch_data() {
+    response=$(curl -s "$API_URL" | jq -r '.results | {sunrise, sunset}')
+    echo $response > $DATA_FILE
+    echo "Data fetched at $(date)"
+}
+
+if [[ -f $LOCK_FILE ]]; then
+    echo "Daemon already running. Forcing fetch..."
+    fetch_data
+else
+    echo $$ > $LOCK_FILE
+    trap "rm -f $LOCK_FILE; exit" INT TERM EXIT
+
+    while true; do
+        fetch_data
+        sleep 86400
+    done &
+    disown
+    echo "Daemon started in the background."
+fi

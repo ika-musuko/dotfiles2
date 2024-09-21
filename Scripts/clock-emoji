@@ -1,0 +1,46 @@
+#!/bin/bash
+
+hour=$(date +%H)
+hour=$((hour % 12))
+minute=$(date +%M)
+
+if [ "$minute" -ge 45 ]; then
+  hour=$((hour + 1))
+  minute=00
+elif [ "$minute" -ge 15 ]; then
+  minute=30
+else
+  minute=00
+fi
+
+time="$(printf "%02d:%02d" "$hour" "$minute")"
+case "$time" in
+  "00:00") emoji="🕛" ;;
+  "00:30") emoji="🕧" ;;
+  "01:00") emoji="🕐" ;;
+  "01:30") emoji="🕜" ;;
+  "02:00") emoji="🕑" ;;
+  "02:30") emoji="🕝" ;;
+  "03:00") emoji="🕒" ;;
+  "03:30") emoji="🕞" ;;
+  "04:00") emoji="🕓" ;;
+  "04:30") emoji="🕟" ;;
+  "05:00") emoji="🕔" ;;
+  "05:30") emoji="🕠" ;;
+  "06:00") emoji="🕕" ;;
+  "06:30") emoji="🕡" ;;
+  "07:00") emoji="🕖" ;;
+  "07:30") emoji="🕢" ;;
+  "08:00") emoji="🕗" ;;
+  "08:30") emoji="🕣" ;;
+  "09:00") emoji="🕘" ;;
+  "09:30") emoji="🕤" ;;
+  "10:00") emoji="🕙" ;;
+  "10:30") emoji="🕥" ;;
+  "11:00") emoji="🕚" ;;
+  "11:30") emoji="🕦" ;;
+  *) emoji="🕛" ;;
+esac
+
+
+echo $emoji

@@ -1,0 +1,5 @@
+#!/bin/bash
+
+output=$(df -h / | tail -1)
+avail_display=$(echo "$output"  | awk '{print $4}')
+echo "${avail_display}"
