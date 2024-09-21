@@ -1,3 +1,24 @@
 #!/bin/bash
-pmset -g batt \
-  | tail -1 | cut -f 2 | cut -d' ' -f 1 -f 2 | sed 's/;//g'
+command=$(pmset -g batt | tail -1 | cut -f 2 | cut -d' ' -f 1 -f 2 | sed 's/;//g')
+
+battery_level=$(echo $command | cut -d' ' -f 1 | sed 's/%//g')
+status=$(echo $command | cut -d' ' -f 2)
+
+get_icon() {
+  if [ $status == "charging" ] || [ $status == "charged" ]; then
+    echo "#[fg=yellow] #[fg=default]"
+  elif [ $battery_level -le 20 ]; then
+    echo "#[fg=red] "
+  elif [ $battery_level -le 40 ]; then
+    echo "#[fg=yellow] "
+  elif [ $battery_level -le 60 ]; then
+    echo "#[fg=green] "
+  elif [ $battery_level -le 80 ]; then
+    echo "#[fg=green] "
+  else
+    echo "#[fg=green] "
+  fi
+}
+
+echo $(get_icon)$battery_level%
+

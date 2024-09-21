@@ -1,7 +1,7 @@
 #!/bin/bash
 
 get_sessions() {
-  tmux_sessions=$(tmux list-sessions -F "#{session_id} #{?session_attached,#[bg=blue]#[fg=black],#[bg=default]#[fg=gray]}[#{session_name}#{?session_attached,,}]#[bg=default]")
+  tmux_sessions=$(tmux list-sessions -F "#{session_id} #{?session_attached,#[bg=blue]#[fg=black],#[bg=default]#[fg=default]}[#{session_name}#{?session_attached,,}]#[bg=default]")
 
   IFS=$'\n'
   for session in $tmux_sessions; do
