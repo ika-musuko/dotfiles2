@@ -25,6 +25,7 @@ require 'paq' {
   'szw/vim-maximizer',
   'shortcuts/no-neck-pain.nvim',
   'ten3roberts/window-picker.nvim',
+  'easymotion/vim-easymotion',
 
   'nvim-lua/plenary.nvim', -- needed for telescope
   'nvim-telescope/telescope-fzf-native.nvim',
@@ -40,6 +41,8 @@ require 'paq' {
   'tweekmonster/django-plus.vim',
   'Glench/Vim-Jinja2-Syntax',
   'terrastruct/d2-vim',
+
+  'glacambre/firenvim',
 
   'neovim/nvim-lspconfig',
   'ms-jpq/coq_nvim',
@@ -86,8 +89,8 @@ require'window-picker'.setup{
   exclude = { qf = true, NvimTree = true, aerial = true },
   hide_other_statuslines = false,
 }
-vim.api.nvim_set_keymap('n', '<leader>[', ':WindowPick<CR>', {})
-vim.api.nvim_set_keymap('n', '<leader>]', ':WindowSwap<CR>', {})
+vim.api.nvim_set_keymap('n', '<leader>w', ':WindowPick<CR>', {})
+vim.api.nvim_set_keymap('n', '<leader>W', ':WindowSwap<CR>', {})
 
 -- nnn
 vim.g['nnn#replace_netrw'] = 1
@@ -97,30 +100,70 @@ vim.g['nnn#command'] = 'nnn -C'
 vim.g.copilot_no_tab_map = true
 vim.api.nvim_set_keymap("i", "<S-Down>", 'copilot#Accept("<CR>")', { silent = true, expr = true })
 
+-- toggle copilot
+vim.api.nvim_create_user_command("Cop", function()
+  local get_status = function()
+    return vim.api.nvim_exec2("Copilot status", { output = true }).output
+  end
+
+  local status = get_status()
+
+  local command = "Copilot enable"
+  if status == "Copilot: Ready" then
+    command = "Copilot disable"
+  end
+
+  vim.api.nvim_command(command)
+
+  local after_status = get_status()
+  print(after_status)
+end, {})
+
 -- emmet
 vim.g.user_emmet_leader_key = '<C-X>'
 
+-- easymotion
+vim.keymap.set('n', '<Space><Space>', '<Plug>(easymotion-jumptoanywhere)', {})
+vim.keymap.set('n', '<Space>f', '<Plug>(easymotion-f)', {})
+vim.keymap.set('n', '<Space>F', '<Plug>(easymotion-F)', {})
+vim.keymap.set('n', '<Space>t', '<Plug>(easymotion-t)', {})
+vim.keymap.set('n', '<Space>T', '<Plug>(easymotion-T)', {})
+vim.keymap.set('n', '<Space>w', '<Plug>(easymotion-w)', {})
+vim.keymap.set('n', '<Space>W', '<Plug>(easymotion-W)', {})
+vim.keymap.set('n', '<Space>b', '<Plug>(easymotion-b)', {})
+vim.keymap.set('n', '<Space>B', '<Plug>(easymotion-B)', {})
+vim.keymap.set('n', '<Space>e', '<Plug>(easymotion-e)', {})
+vim.keymap.set('n', '<Space>E', '<Plug>(easymotion-E)', {})
+vim.keymap.set('n', '<Space>g', '<Plug>(easymotion-ge)', {})
+vim.keymap.set('n', '<Space>g', '<Plug>(easymotion-gE)', {})
+vim.keymap.set('n', '<Space>j', '<Plug>(easymotion-j)', {})
+vim.keymap.set('n', '<Space>k', '<Plug>(easymotion-k)', {})
+vim.keymap.set('n', '<Space>n', '<Plug>(easymotion-n)', {})
+vim.keymap.set('n', '<Space>N', '<Plug>(easymotion-N)', {})
+vim.keymap.set('n', '<Space>s', '<Plug>(easymotion-s)', {})
+
+
 -- treesitter
-require('nvim-treesitter.configs').setup({
-  highlight = {
-    enable = true,
-    disable = function(_, bufnr)
-        return vim.api.nvim_buf_line_count(bufnr) > 5000
-    end,
-    additional_vim_regex_highlighting = false,
-  },
-  indent = {
-    enable = true
-  },
-  ensure_installed = {
-    "html", "css", "javascript",
-    "elixir",
-    "cpp",
-  },
-  matchup = {
-    enable = true,
-  }
-})
+--require('nvim-treesitter.configs').setup({
+--  highlight = {
+--    enable = true,
+--    disable = function(_, bufnr)
+--        return vim.api.nvim_buf_line_count(bufnr) > 5000
+--    end,
+--    additional_vim_regex_highlighting = false,
+--  },
+--  indent = {
+--    enable = true
+--  },
+--  ensure_installed = {
+--    "html", "css", "javascript",
+--    "elixir",
+--    "cpp",
+--  },
+--  matchup = {
+--    enable = true,
+--  }
+--})
 
 -- use htmldjango indent for jinja
 local jinja_indent_group = vim.api.nvim_create_augroup("jinja_indent", { clear = true })
@@ -259,7 +302,7 @@ vim.cmd("autocmd FocusGained * checktime")
 
 vim.opt.list = true
 vim.opt.expandtab = true
-vim.opt.tabstop = 2
+vim.opt.tabstop = 4
 vim.opt.softtabstop = 2
 vim.opt.shiftwidth = 2
 
@@ -298,6 +341,15 @@ end
 
 vim.api.nvim_create_user_command('TrimWhitespace', trim_whitespace, {})
 vim.keymap.set('', '<leader>s', ':TrimWhitespace<CR>')
+
+-- rename file
+vim.api.nvim_create_user_command('Rn', function(opts)
+  local old_name = vim.fn.expand('%')
+  local new_name = opts.fargs[1]
+  vim.api.nvim_exec2('f '..new_name, {})
+  vim.api.nvim_exec2('w', {})
+  vim.api.nvim_exec2('!rm '..old_name, {})
+end, { nargs = 1 })
 
 -- terminal
 vim.keymap.set('', '<leader>e', ':Term<CR>')
@@ -344,6 +396,7 @@ vim.keymap.set('', '<leader><BS>', ':bp | vsp | bn | bd!<CR>')		-- delete curren
 vim.keymap.set('', '<leader>p' , ":lua require'telescope.builtin'.find_files{hidden = true}<CR>")
 vim.keymap.set('', '<leader>P' , ":lua require'telescope.builtin'.find_files{hidden = true, no_ignore = true}<CR>")
 vim.keymap.set('', '<leader>b', ":lua require'telescope.builtin'.buffers{}<CR>")
+vim.keymap.set('', '<leader><Tab>', ":lua require'telescope.builtin'.buffers{}<CR>")
 vim.keymap.set('', '<leader>f', ":lua require'telescope.builtin'.live_grep{}<CR>")
 
 vim.keymap.set('', '<leader>t' , ":Trouble diagnostics toggle<CR>")
@@ -408,7 +461,7 @@ end, { nargs = 1 })
 
 
 -- insert agenda for sagyou.md
-vim.keymap.set('n', '<leader>8', ':r!~/Scripts/agenda yesterday today<CR>')
-vim.keymap.set('n', '<leader>9', ':r!~/Scripts/agenda today tomorrow<CR>')
-vim.keymap.set('n', '<leader>0', ':r!~/Scripts/agenda tomorrow 2days<CR>')
-vim.keymap.set('n', '<leader>2', ':r!~/Scripts/agenda 2days 3days<CR>')
+--vim.keymap.set('n', '<leader>8', ':r!~/Scripts/agenda yesterday today<CR>')
+--vim.keymap.set('n', '<leader>9', ':r!~/Scripts/agenda today tomorrow<CR>')
+--vim.keymap.set('n', '<leader>0', ':r!~/Scripts/agenda tomorrow 2days<CR>')
+--vim.keymap.set('n', '<leader>2', ':r!~/Scripts/agenda 2days 3days<CR>')

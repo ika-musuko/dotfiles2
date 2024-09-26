@@ -12,7 +12,7 @@ get_icon() {
   elif [ $battery_level -le 40 ]; then
     echo "#[fg=yellow] "
   elif [ $battery_level -le 60 ]; then
-    echo "#[fg=green] "
+    echo "#[fg=yellow] "
   elif [ $battery_level -le 80 ]; then
     echo "#[fg=green] "
   else
