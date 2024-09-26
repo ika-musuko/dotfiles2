@@ -323,7 +323,6 @@ vim.opt.hlsearch = true
 vim.opt.undodir = vim.fn.expand("~/.vimdid/")
 vim.opt.undofile = true
 
-vim.keymap.set('n', '<C-\\>', ':noh<CR>')
 vim.keymap.set('n', 'g<Return>', ':noh<CR>')
 
 -- commands
@@ -390,7 +389,7 @@ for name, file in pairs(conf_files) do
 end
 
 -- buffer keybindings
-vim.keymap.set('', '<leader><leader>' , "<C-^>")	-- navigate to MRU buffer
+vim.keymap.set('', '<C-\\>' , "<C-^>")	-- navigate to MRU buffer
 vim.keymap.set('', '<leader><BS>', ':bp | vsp | bn | bd!<CR>')		-- delete current buffer
 
 vim.keymap.set('', '<leader>p' , ":lua require'telescope.builtin'.find_files{hidden = true}<CR>")
@@ -406,13 +405,13 @@ vim.keymap.set('', '<C-h>', '<C-w>h')
 vim.keymap.set('', '<C-j>', '<C-w>j')
 vim.keymap.set('', '<C-k>', '<C-w>k')
 vim.keymap.set('', '<C-l>', '<C-w>l')
-vim.keymap.set('', '<C-p>', '<C-w>p')
+vim.keymap.set('', '<C-x>', '<C-w><C-w>')
 
 vim.keymap.set('i', '<C-h>', '<Esc><C-w>h')
 vim.keymap.set('i', '<C-j>', '<Esc><C-w>j')
 vim.keymap.set('i', '<C-k>', '<Esc><C-w>k')
 vim.keymap.set('i', '<C-l>', '<Esc><C-w>l')
-vim.keymap.set('i', '<C-p>', '<Esc><C-w>p')
+vim.keymap.set('i', '<C-x>', '<Esc><C-w><C-w>')
 
 -- horizontal scroll
 vim.keymap.set('', '<S-ScrollWheelUp>',   '4zh')
