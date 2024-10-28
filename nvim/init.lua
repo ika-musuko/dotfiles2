@@ -4,9 +4,6 @@ require 'paq' {
 
   'rktjmp/lush.nvim',
   'zenbones-theme/zenbones.nvim',
-  'sainnhe/everforest',
-  'kadekillary/skull-vim',
-  'danishprakash/vim-yami',
 
   'nvim-treesitter/nvim-treesitter',
 
@@ -25,44 +22,25 @@ require 'paq' {
   'szw/vim-maximizer',
   'shortcuts/no-neck-pain.nvim',
   'ten3roberts/window-picker.nvim',
-  'easymotion/vim-easymotion',
 
   'nvim-lua/plenary.nvim', -- needed for telescope
   'nvim-telescope/telescope-fzf-native.nvim',
   'nvim-telescope/telescope.nvim',
-  'mcchrish/nnn.vim',
 
-  'pangloss/vim-javascript',
-  'jonsmithers/vim-html-template-literals',
-  'HerringtonDarkholme/yats.vim',
   'Shougo/context_filetype.vim',
-  'sophacles/vim-bundle-mako',
-  'hashivim/vim-terraform',
   'tweekmonster/django-plus.vim',
-  'Glench/Vim-Jinja2-Syntax',
   'terrastruct/d2-vim',
-
-  'glacambre/firenvim',
-
-  'neovim/nvim-lspconfig',
-  'ms-jpq/coq_nvim',
-
-  'williamboman/mason.nvim',
-  'williamboman/mason-lspconfig.nvim',
-
-  'github/copilot.vim',
 
   'folke/trouble.nvim',
   'nvim-tree/nvim-web-devicons',
 
   'dgagn/diagflow.nvim',
-
-  'ThePrimeagen/vim-be-good',
 }
 
 -- plugin settings
 require('telescope').setup {
   defaults = {
+    preview = false,
     layout_config = {
       horizontal = {
         height = 0.8
@@ -92,185 +70,40 @@ require'window-picker'.setup{
 vim.api.nvim_set_keymap('n', '<leader>w', ':WindowPick<CR>', {})
 vim.api.nvim_set_keymap('n', '<leader>W', ':WindowSwap<CR>', {})
 
--- nnn
-vim.g['nnn#replace_netrw'] = 1
-vim.g['nnn#command'] = 'nnn -C'
-
--- copilot
-vim.g.copilot_no_tab_map = true
-vim.api.nvim_set_keymap("i", "<S-Down>", 'copilot#Accept("<CR>")', { silent = true, expr = true })
-
--- toggle copilot
-vim.api.nvim_create_user_command("Cop", function()
-  local get_status = function()
-    return vim.api.nvim_exec2("Copilot status", { output = true }).output
-  end
-
-  local status = get_status()
-
-  local command = "Copilot enable"
-  if status == "Copilot: Ready" then
-    command = "Copilot disable"
-  end
-
-  vim.api.nvim_command(command)
-
-  local after_status = get_status()
-  print(after_status)
-end, {})
-
--- emmet
-vim.g.user_emmet_leader_key = '<C-X>'
-
--- easymotion
-vim.keymap.set('n', '<Space><Space>', '<Plug>(easymotion-jumptoanywhere)', {})
-vim.keymap.set('n', '<Space>f', '<Plug>(easymotion-f)', {})
-vim.keymap.set('n', '<Space>F', '<Plug>(easymotion-F)', {})
-vim.keymap.set('n', '<Space>t', '<Plug>(easymotion-t)', {})
-vim.keymap.set('n', '<Space>T', '<Plug>(easymotion-T)', {})
-vim.keymap.set('n', '<Space>w', '<Plug>(easymotion-w)', {})
-vim.keymap.set('n', '<Space>W', '<Plug>(easymotion-W)', {})
-vim.keymap.set('n', '<Space>b', '<Plug>(easymotion-b)', {})
-vim.keymap.set('n', '<Space>B', '<Plug>(easymotion-B)', {})
-vim.keymap.set('n', '<Space>e', '<Plug>(easymotion-e)', {})
-vim.keymap.set('n', '<Space>E', '<Plug>(easymotion-E)', {})
-vim.keymap.set('n', '<Space>g', '<Plug>(easymotion-ge)', {})
-vim.keymap.set('n', '<Space>g', '<Plug>(easymotion-gE)', {})
-vim.keymap.set('n', '<Space>j', '<Plug>(easymotion-j)', {})
-vim.keymap.set('n', '<Space>k', '<Plug>(easymotion-k)', {})
-vim.keymap.set('n', '<Space>n', '<Plug>(easymotion-n)', {})
-vim.keymap.set('n', '<Space>N', '<Plug>(easymotion-N)', {})
-vim.keymap.set('n', '<Space>s', '<Plug>(easymotion-s)', {})
-
 
 -- treesitter
---require('nvim-treesitter.configs').setup({
---  highlight = {
---    enable = true,
---    disable = function(_, bufnr)
---        return vim.api.nvim_buf_line_count(bufnr) > 5000
---    end,
---    additional_vim_regex_highlighting = false,
---  },
---  indent = {
---    enable = true
---  },
---  ensure_installed = {
---    "html", "css", "javascript",
---    "elixir",
---    "cpp",
---  },
---  matchup = {
---    enable = true,
---  }
---})
+local nvim_treesitter = require('nvim-treesitter.configs')
 
--- use htmldjango indent for jinja
-local jinja_indent_group = vim.api.nvim_create_augroup("jinja_indent", { clear = true })
+vim.treesitter.language.register('html', 'jinja')
 
-vim.api.nvim_create_autocmd("FileType", {
-  group = jinja_indent_group,
-  pattern = "jinja",
-  callback = function()
-    vim.bo.indentexpr = "htmldjango#indent()"
-  end,
-})
+vim.treesitter.language.register('hcl', 'terraform')
+vim.treesitter.language.register('hcl', 'tfvars')
 
--- lsp
-vim.diagnostic.config({
-  virtual_text = false,
-})
-
-
-require('trouble').setup()
-
-require('diagflow').setup()
-
-require('mason').setup()
-require('mason-lspconfig').setup({
-  ensure_installed = { 'lua_ls', }
-})
-
-local on_attach = function(_, _)
-  vim.keymap.set('n', '<leader>rn', vim.lsp.buf.rename, {})
-  vim.keymap.set('n', '<leader>.', vim.lsp.buf.code_action, {})
-
-  vim.keymap.set('n', 'gd', vim.lsp.buf.definition, {})
-  vim.keymap.set('n', 'gD', function()
-    local win_width = vim.api.nvim_win_get_width(0)
-    local win_height = vim.api.nvim_win_get_height(0)
-
-    if win_width > win_height * 4 then
-      vim.cmd('vsplit')
-    else
-      vim.cmd('split')
-    end
-
-    vim.lsp.buf.definition()
-  end, {})
-  vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, {})
-  vim.keymap.set('n', 'gr', require('telescope.builtin').lsp_references, {})
-
-  vim.keymap.set('n', '<leader>dp', vim.diagnostic.goto_prev, {})
-  vim.keymap.set('n', '<leader>dn', vim.diagnostic.goto_next, {})
-
-  vim.keymap.set('n', 'K', vim.lsp.buf.hover, {})
-end
-
-
-local lsp = require('lspconfig')
-local coq = require('coq')
-
-local on_attach_spaces = function(tab_width)
-  return function(client, bufnr)
-    if client.name == 'clangd' then
-      vim.bo[bufnr].tabstop = tab_width
-      vim.bo[bufnr].shiftwidth = tab_width
-      vim.bo[bufnr].expandtab = true
-    end
-    on_attach()
-  end
-end
-
--- lua
-lsp.lua_ls.setup(coq.lsp_ensure_capabilities({
-  on_attach = on_attach,
-  settings = {
-    Lua = {
-      diagnostics = {
-        globals = {'vim'},
-      },
-    },
+nvim_treesitter.setup({
+  highlight = {
+    enable = true,
+    disable = function(_, bufnr)
+        return vim.api.nvim_buf_line_count(bufnr) > 5000
+    end,
+    additional_vim_regex_highlighting = false,
   },
-}))
-
--- c++
-lsp.clangd.setup(coq.lsp_ensure_capabilities({
-  on_attach = on_attach_spaces(4)
-}))
-lsp.bzl.setup(coq.lsp_ensure_capabilities({ on_attach = on_attach }))
-lsp.cmake.setup(coq.lsp_ensure_capabilities({ on_attach = on_attach }))
-
-lsp.cssls.setup(coq.lsp_ensure_capabilities({
-  on_attach = on_attach,
-}))
-
-lsp.html.setup(coq.lsp_ensure_capabilities({
-  on_attach = on_attach,
-}))
-
-lsp.pylsp.setup(coq.lsp_ensure_capabilities({
-  on_attach = on_attach,
-  settings = {
-    pylsp = {
-      plugins = {
-        pylint = { enabled = false },
-        pyflakes = { enabled = false },
-        pycodestyle = { enabled = false }
-      }
-    }
+  indent = {
+    enable = true
   },
-}))
+  ensure_installed = {
+    "html", "css", "javascript",
+    "elixir",
+    "c",
+    "cpp",
+    "python",
+    "bash",
+    "lua",
+    "hcl",
+  },
+  matchup = {
+    enable = true,
+  }
+})
 
 -- cursor settings
 vim.opt.cursorline = true
@@ -296,15 +129,15 @@ vim.cmd('highlight LineNr ctermbg=NONE guibg=NONE')
 
 
 -- environment settings
-vim.cmd("syntax enable")
+vim.cmd("syntax on")
 
 vim.cmd("autocmd FocusGained * checktime")
 
 vim.opt.list = true
 vim.opt.expandtab = true
 vim.opt.tabstop = 4
-vim.opt.softtabstop = 2
-vim.opt.shiftwidth = 2
+vim.opt.softtabstop = 4
+vim.opt.shiftwidth = 4
 
 vim.opt.clipboard = 'unnamedplus'
 
@@ -405,13 +238,11 @@ vim.keymap.set('', '<C-h>', '<C-w>h')
 vim.keymap.set('', '<C-j>', '<C-w>j')
 vim.keymap.set('', '<C-k>', '<C-w>k')
 vim.keymap.set('', '<C-l>', '<C-w>l')
-vim.keymap.set('', '<C-x>', '<C-w><C-w>')
 
 vim.keymap.set('i', '<C-h>', '<Esc><C-w>h')
 vim.keymap.set('i', '<C-j>', '<Esc><C-w>j')
 vim.keymap.set('i', '<C-k>', '<Esc><C-w>k')
 vim.keymap.set('i', '<C-l>', '<Esc><C-w>l')
-vim.keymap.set('i', '<C-x>', '<Esc><C-w><C-w>')
 
 -- horizontal scroll
 vim.keymap.set('', '<S-ScrollWheelUp>',   '4zh')
@@ -421,12 +252,6 @@ vim.keymap.set('', '<S-Right>',           '8zl')
 
 -- terminal normal mode
 vim.keymap.set('t', '<Esc>', '<C-\\><C-n>')
-
--- surround
-vim.keymap.set('', '<leader>\'', 'ysw\'')
-vim.keymap.set('', '<leader>"', 'ysw\"')
-vim.keymap.set('', '<leader>/\'', 'ysW\'')
-vim.keymap.set('', '<leader>/"', 'ysW\"')
 
 -- misc commands
 -- cursor centering for easier prose writing
@@ -458,9 +283,3 @@ vim.api.nvim_create_user_command('F', function(opts)
   vim.bo.filetype = opts.fargs[1]
 end, { nargs = 1 })
 
-
--- insert agenda for sagyou.md
---vim.keymap.set('n', '<leader>8', ':r!~/Scripts/agenda yesterday today<CR>')
---vim.keymap.set('n', '<leader>9', ':r!~/Scripts/agenda today tomorrow<CR>')
---vim.keymap.set('n', '<leader>0', ':r!~/Scripts/agenda tomorrow 2days<CR>')
---vim.keymap.set('n', '<leader>2', ':r!~/Scripts/agenda 2days 3days<CR>')
