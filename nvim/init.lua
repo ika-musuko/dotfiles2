@@ -75,6 +75,7 @@ vim.api.nvim_set_keymap('n', '<leader>W', ':WindowSwap<CR>', {})
 local nvim_treesitter = require('nvim-treesitter.configs')
 
 vim.treesitter.language.register('html', 'jinja')
+vim.treesitter.language.register('html', 'jinja2')
 
 vim.treesitter.language.register('hcl', 'terraform')
 vim.treesitter.language.register('hcl', 'tfvars')
@@ -138,6 +139,15 @@ vim.opt.expandtab = true
 vim.opt.tabstop = 4
 vim.opt.softtabstop = 4
 vim.opt.shiftwidth = 4
+vim.api.nvim_create_augroup('setIndent', { clear = true })
+vim.api.nvim_create_autocmd({'Filetype'}, {
+  group = 'setIndent',
+  pattern = { 'css', 'html', 'javascript',
+    'lua', 'markdown', 'md', 'typescript',
+    'scss', 'xml', 'xhtml', 'yaml', 'jinja'
+  },
+  command = 'setlocal shiftwidth=2 tabstop=2'
+})
 
 vim.opt.clipboard = 'unnamedplus'
 
