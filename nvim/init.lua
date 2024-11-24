@@ -27,11 +27,12 @@ require 'paq' {
   'nvim-telescope/telescope-fzf-native.nvim',
   'nvim-telescope/telescope.nvim',
 
+  'ms-jpq/chadtree',
+
   'Shougo/context_filetype.vim',
   'tweekmonster/django-plus.vim',
   'terrastruct/d2-vim',
 
-  'folke/trouble.nvim',
   'nvim-tree/nvim-web-devicons',
 
   'dgagn/diagflow.nvim',
@@ -92,7 +93,7 @@ nvim_treesitter.setup({
     enable = true
   },
   ensure_installed = {
-    "html", "css", "javascript",
+    "html", "css", "javascript", "typescript", "vue", "svelte",
     "elixir",
     "c",
     "cpp",
@@ -231,13 +232,23 @@ for name, file in pairs(conf_files) do
   vim.api.nvim_create_user_command('Cf' .. name, open_conf(file), {})
 end
 
--- buffer keybindings
-vim.keymap.set('', '<C-\\>' , "<C-^>")	-- navigate to MRU buffer
-vim.keymap.set('', '<leader><BS>', ':bp | vsp | bn | bd!<CR>')		-- delete current buffer
+-- file navigator
+vim.keymap.set('', '<C-n>', ':CHADopen<CR>')
 
+local chadtree_settings = {
+    view =  {
+        open_direction = 'right',
+    },
+    theme = {
+        text_colour_set = 'nerdtree_syntax_dark',
+    }
+}
+vim.api.nvim_set_var('chadtree_settings', chadtree_settings)
+
+-- buffer keybindings
 vim.keymap.set('', '<leader>p' , ":lua require'telescope.builtin'.find_files{hidden = true}<CR>")
 vim.keymap.set('', '<leader>P' , ":lua require'telescope.builtin'.find_files{hidden = true, no_ignore = true}<CR>")
-vim.keymap.set('', '<leader>b', ":lua require'telescope.builtin'.buffers{}<CR>")
+vim.keymap.set('', '<leader>b',     ":lua require'telescope.builtin'.buffers{}<CR>")
 vim.keymap.set('', '<leader><Tab>', ":lua require'telescope.builtin'.buffers{}<CR>")
 vim.keymap.set('', '<leader>f', ":lua require'telescope.builtin'.live_grep{}<CR>")
 

@@ -1,4 +1,4 @@
 #!/bin/bash
 pages_active=$(vm_stat | grep 'Pages active:' | awk '{print $3}' | sed 's/\.//')
-used_memory=$((${pages_active} * $(pagesize) / 1024 / 1024))
+used_memory=$((${pages_active} * 4096 / 1024 / 1024))
 echo "${used_memory}Mi"
