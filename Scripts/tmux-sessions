@@ -1,4 +1,4 @@
 #!/bin/bash
 
-tmux list-sessions -F "#{?session_attached,#[bg=blue]#[fg=black],#[bg=default]#[fg=default]}[#{session_name}#{?session_attached,,}]#[bg=default]" \
+tmux list-sessions -F "#{?session_attached,#[bg=blue]#[fg=black],#[bg=default]#[fg=brightwhite]}[#{session_name}#{?session_attached,,}]#[bg=default]" \
   | tr '\n' ' '
