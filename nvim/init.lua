@@ -9,7 +9,11 @@ require("paq")({
 
 	"tpope/vim-surround",
 	"tpope/vim-repeat",
+
+	-- case insensitive replace (:%S)
 	"tpope/vim-abolish",
+
+	-- set buffer settings (e.g. expandtab/shiftwidth) automatically based on current file
 	"tpope/vim-sleuth",
 
 	"LunarVim/bigfile.nvim",
@@ -81,6 +85,15 @@ require("window-picker").setup({
 vim.api.nvim_set_keymap("n", "<leader>w", ":WindowPick<CR>", {})
 vim.api.nvim_set_keymap("n", "<leader>W", ":WindowSwap<CR>", {})
 
+-- center window
+require("no-neck-pain").setup({
+	width = 150,
+})
+vim.keymap.set("", "<leader>g", ":NoNeckPain<CR>")
+
+-- maximizer
+vim.keymap.set("", "<leader>z", ":MaximizerToggle<CR>")
+
 -- languages and formatting
 vim.api.nvim_create_augroup("setIndent", { clear = true })
 vim.api.nvim_create_autocmd({ "FileType" }, {
@@ -117,7 +130,6 @@ vim.api.nvim_create_autocmd({ "FileType" }, {
 	},
 	command = "setlocal tabstop=8 softtabstop=8 shiftwidth=8 tabstop=8 noexpandtab",
 })
-
 
 vim.api.nvim_create_autocmd({ "FileType" }, {
 	group = "setIndent",
@@ -179,9 +191,9 @@ vim.cmd("highlight String guifg=green ctermfg=green")
 vim.cmd("highlight Comment ctermfg=15 guifg=white")
 vim.cmd("highlight Whitespace ctermfg=8")
 
-vim.cmd("highlight MatchParen cterm=NONE ctermbg=15 ctermfg=black")
-vim.cmd("highlight MatchPairs cterm=NONE ctermbg=15 ctermfg=black")
-vim.cmd("highlight matchTag   cterm=NONE ctermbg=15 ctermfg=black")
+vim.cmd("highlight MatchParen cterm=NONE ctermbg=black ctermfg=magenta")
+vim.cmd("highlight MatchPairs cterm=NONE ctermbg=8 ctermfg=black")
+vim.cmd("highlight matchTag   cterm=NONE ctermbg=8 ctermfg=black")
 
 vim.cmd("highlight Normal ctermbg=NONE guibg=NONE")
 vim.cmd("highlight LineNr ctermfg=8 ctermbg=NONE guibg=NONE")
@@ -209,7 +221,7 @@ vim.opt.undofile = true
 
 vim.keymap.set("n", "g<Return>", ":noh<CR>")
 
--- commands
+-- custom commands
 -- uppercase corrections
 vim.api.nvim_create_user_command("W", "w", {})
 vim.api.nvim_create_user_command("Sp", "sp", {})
@@ -234,49 +246,12 @@ vim.api.nvim_create_user_command("Rn", function(opts)
 	vim.api.nvim_exec2("!rm " .. old_name, {})
 end, { nargs = 1 })
 
--- terminal
-vim.keymap.set("", "<leader>e", ":Term<CR>")
-
--- center window
-require("no-neck-pain").setup({
-	width = 150,
-})
-vim.keymap.set("", "<leader>g", ":NoNeckPain<CR>")
-
--- maximizer
-vim.keymap.set("", "<leader>z", ":MaximizerToggle<CR>")
-
 -- config keybindings
--- neovim configs
 local init_file = "~/.config/nvim/init.lua"
 local refresh_cmd = ":so " .. init_file .. "<CR>"
 vim.keymap.set("n", "<leader>,e", ":e " .. init_file .. "<CR>")
 vim.keymap.set("n", "<leader>,r", refresh_cmd)
 vim.keymap.set("n", "<leader>,p", refresh_cmd .. ":PaqSync<CR>")
-
--- other configs
-local conf_files = {
-	kitty = "~/.config/kitty/kitty.conf",
-	tmux = "~/.tmux.conf",
-	vim = "~/.config/nvim/init.lua",
-	zsh = "~/.zshrc",
-}
-
-local function open_conf(conf)
-	return function()
-		vim.api.nvim_command("e " .. conf)
-	end
-end
-
-for name, file in pairs(conf_files) do
-	vim.api.nvim_create_user_command("Cf" .. name, open_conf(file), {})
-end
-
--- buffer keybindings
-vim.keymap.set("", "<C-\\>", "<C-^>") -- navigate to MRU buffer
-vim.keymap.set("", "<leader><BS>", ":bp | vsp | bn | bd!<CR>") -- delete current buffer
-
-vim.keymap.set("", "<leader>t", ":Trouble diagnostics toggle<CR>")
 
 -- window navigation
 vim.keymap.set("", "<C-h>", "<C-w>h")
