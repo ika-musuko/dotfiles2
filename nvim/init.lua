@@ -14,7 +14,7 @@ require("packer").startup(function(use)
 
 	use("tpope/vim-abolish") -- case insensitive replace (:%S)
 
-    use("michaeljsmith/vim-indent-object")
+	use("michaeljsmith/vim-indent-object")
 
 	use("LunarVim/bigfile.nvim")
 
@@ -40,7 +40,7 @@ local function set_indent(opts)
 	vim.opt_local.tabstop = opts.width
 	vim.opt_local.softtabstop = opts.width
 	vim.opt_local.shiftwidth = opts.width
-	vim.opt_local.expandtab = not opts.use_tabs or true
+    vim.opt_local.expandtab = not opts.use_tabs
 end
 
 vim.api.nvim_create_augroup("setIndent", { clear = true })
@@ -56,12 +56,21 @@ vim.api.nvim_create_autocmd({ "FileType" }, {
 		"xhtml",
 		"yaml",
 		"jinja",
-		"svelte",
 		"markdown",
 		"md",
 	},
 	callback = function()
 		set_indent({ width = 2 })
+	end,
+})
+
+vim.api.nvim_create_autocmd({ "FileType" }, {
+	group = "setIndent",
+	pattern = {
+		"svelte",
+	},
+	callback = function()
+		set_indent({ width = 2, use_tabs = true })
 	end,
 })
 
@@ -118,46 +127,76 @@ vim.cmd("set t_Co=8")
 vim.cmd("syntax clear")
 vim.cmd("syntax on")
 
--- interface
-vim.cmd("highlight Normal ctermbg=NONE guibg=NONE")
-vim.cmd("highlight LineNr ctermfg=8 ctermbg=NONE guibg=NONE")
-vim.cmd("highlight CursorLine ctermbg=black")
+do
+	-- color names
+	local black = 0
+	local red = 1
+	local green = 2
+	local yellow = 3
+	local blue = 4
+	local magenta = 5
+	local cyan = 6
+	local white = 7
+	local brightblack = 8
+	local brightred = 9
+	local brightgreen = 10
+	local brightyellow = 11
+	local brightblue = 12
+	local brightmagenta = 13
+	local brightcyan = 14
+	local brightwhite = 15
 
--- force no highlight
-vim.cmd("highlight Function ctermfg=NONE")
-vim.cmd("highlight Class ctermfg=NONE")
-vim.cmd("highlight Identifier ctermfg=NONE")
-vim.cmd("highlight Statement ctermfg=NONE")
+	-- color helpers
+	local default = white
+	local none = "NONE"
 
--- highlights
-vim.cmd("highlight Cursor     ctermbg=0")
-vim.cmd("highlight Comment    ctermfg=15")
-vim.cmd("highlight Todo       ctermfg=red ctermbg=black")
-vim.cmd("highlight String     ctermfg=green")
-vim.cmd("highlight Comment    ctermfg=15")
-vim.cmd("highlight Whitespace ctermfg=8")
-vim.cmd("highlight Special    ctermfg=yellow")
+	-- default text color
+	vim.api.nvim_set_hl(0, "Normal", { ctermfg = default, ctermbg = none })
 
-vim.cmd("highlight htmlTag     ctermfg=14")
-vim.cmd("highlight htmlTagN    ctermfg=14")
-vim.cmd("highlight htmlTagName ctermfg=14")
-vim.cmd("highlight htmlArg     ctermfg=14")
-vim.cmd("highlight htmlEndTag  ctermfg=14")
+	-- interface
+	vim.api.nvim_set_hl(0, "StatusLine", { ctermfg = default, ctermbg = black })
+	vim.api.nvim_set_hl(0, "LineNr", { ctermfg = brightblack, ctermbg = none })
+	vim.api.nvim_set_hl(0, "Cursor", { ctermbg = black })
+	vim.api.nvim_set_hl(0, "Search", { ctermfg = black, ctermbg = yellow })
+	vim.api.nvim_set_hl(0, "CurSearch", { ctermfg = black, ctermbg = green })
 
-vim.cmd("highlight markdownH1  ctermfg=14")
-vim.cmd("highlight markdownH2  ctermfg=10")
-vim.cmd("highlight markdownH3  ctermfg=6")
-vim.cmd("highlight markdownH4  ctermfg=2")
-vim.cmd("highlight markdownH1Delimiter ctermfg=14")
-vim.cmd("highlight markdownH2Delimiter ctermfg=10")
-vim.cmd("highlight markdownH3Delimiter ctermfg=6")
-vim.cmd("highlight markdownH4Delimiter ctermfg=2")
-vim.cmd("highlight markdownListMarker        ctermfg=NONE")
-vim.cmd("highlight markdownOrderedListMarker ctermfg=NONE")
+	-- force no highlight
+	vim.api.nvim_set_hl(0, "Function", { ctermfg = default })
+	vim.api.nvim_set_hl(0, "Class", { ctermfg = default })
+	vim.api.nvim_set_hl(0, "Identifier", { ctermfg = default })
+	vim.api.nvim_set_hl(0, "Statement", { ctermfg = default })
 
-vim.cmd("highlight MatchParen cterm=NONE ctermbg=black ctermfg=magenta")
-vim.cmd("highlight MatchPairs cterm=NONE ctermbg=black ctermfg=magenta")
-vim.cmd("highlight matchTag   cterm=NONE ctermbg=black ctermfg=magenta")
+	-- syntax highlights
+	vim.api.nvim_set_hl(0, "Comment", { ctermfg = "gray" })
+	vim.api.nvim_set_hl(0, "Todo", { ctermfg = red, ctermbg = black })
+	vim.api.nvim_set_hl(0, "String", { ctermfg = yellow })
+	vim.api.nvim_set_hl(0, "Whitespace", { ctermfg = 8 })
+	vim.api.nvim_set_hl(0, "Special", { ctermfg = blue })
+
+	-- html
+	vim.api.nvim_set_hl(0, "htmlTag", { ctermfg = brightcyan })
+	vim.api.nvim_set_hl(0, "htmlTagN", { ctermfg = brightcyan })
+	vim.api.nvim_set_hl(0, "htmlTagName", { ctermfg = brightcyan })
+	vim.api.nvim_set_hl(0, "htmlArg", { ctermfg = brightcyan })
+	vim.api.nvim_set_hl(0, "htmlEndTag", { ctermfg = brightcyan })
+
+	-- markdown
+	vim.api.nvim_set_hl(0, "markdownH1", { ctermfg = brightcyan })
+	vim.api.nvim_set_hl(0, "markdownH2", { ctermfg = brightgreen })
+	vim.api.nvim_set_hl(0, "markdownH3", { ctermfg = cyan })
+	vim.api.nvim_set_hl(0, "markdownH4", { ctermfg = green })
+	vim.api.nvim_set_hl(0, "markdownH1Delimiter", { ctermfg = brightcyan })
+	vim.api.nvim_set_hl(0, "markdownH2Delimiter", { ctermfg = brightgreen })
+	vim.api.nvim_set_hl(0, "markdownH3Delimiter", { ctermfg = cyan })
+	vim.api.nvim_set_hl(0, "markdownH4Delimiter", { ctermfg = green })
+	vim.api.nvim_set_hl(0, "markdownListMarker", { ctermfg = default })
+	vim.api.nvim_set_hl(0, "markdownOrderedListMarker", { ctermfg = default })
+
+	-- match
+	vim.api.nvim_set_hl(0, "MatchParen", { ctermbg = black, ctermfg = green })
+	vim.api.nvim_set_hl(0, "MatchPairs", { ctermbg = black, ctermfg = green })
+	vim.api.nvim_set_hl(0, "matchTag", { ctermbg = black, ctermfg = green })
+end
 
 --- environment settings
 vim.cmd("autocmd FocusGained * checktime")
@@ -185,11 +224,24 @@ vim.opt.cursorlineopt = "number"
 
 --- native keybindings
 -- config keybindings
-local init_file = "~/.config/nvim/init.lua"
-local refresh_cmd = ":so " .. init_file .. "<CR>"
-vim.keymap.set("n", "<leader>,e", ":e " .. init_file .. "<CR>")
-vim.keymap.set("n", "<leader>,r", refresh_cmd)
-vim.keymap.set("n", "<leader>,p", refresh_cmd .. ":PackerSync<CR>")
+do
+	local init_file = "~/.config/nvim/init.lua"
+
+	local function edit_config()
+		vim.cmd.edit(init_file)
+	end
+
+	local function reload_config()
+		vim.cmd.source(init_file)
+	end
+
+	vim.keymap.set("n", "<leader>,e", edit_config)
+	vim.keymap.set("n", "<leader>,r", reload_config)
+	vim.keymap.set("n", "<leader>,p", function()
+		reload_config()
+		vim.cmd("PackerSync")
+	end)
+end
 
 -- window navigation
 vim.keymap.set("", "<C-h>", "<C-w>h")
@@ -268,17 +320,17 @@ vim.api.nvim_set_keymap("n", "<leader>W", ":WindowSwap<CR>", {})
 
 -- center window
 local function toggle_window_centering()
-    require("no-neck-pain").setup({
-        width = 120,
-    })
-    vim.cmd("NoNeckPain")
+	require("no-neck-pain").setup({
+		width = 120,
+	})
+	vim.cmd("NoNeckPain")
 end
 
 local function toggle_presentation_mode()
-    require("no-neck-pain").setup({
-        width = 50,
-    })
-    vim.cmd("NoNeckPain")
+	require("no-neck-pain").setup({
+		width = 50,
+	})
+	vim.cmd("NoNeckPain")
 end
 
 vim.keymap.set("", "<leader>g", toggle_window_centering)
