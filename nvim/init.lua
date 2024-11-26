@@ -27,8 +27,9 @@ require("packer").startup(function(use)
 		requires = { "nvim-lua/plenary.nvim", "nvim-telescope/telescope-fzf-native.nvim" },
 	})
 
-	use("folke/trouble.nvim")
 	use("nvim-tree/nvim-web-devicons")
+
+	use("Shougo/context_filetype.vim") -- single file multiple lang support
 
 	use("leafOfTree/vim-svelte-plugin")
 
@@ -152,6 +153,7 @@ do
 
 	-- default text color
 	vim.api.nvim_set_hl(0, "Normal", { ctermfg = default, ctermbg = none })
+	vim.api.nvim_set_hl(0, "CursorLine", { ctermfg = default, ctermbg = green })
 
 	-- interface
 	vim.api.nvim_set_hl(0, "StatusLine", { ctermfg = default, ctermbg = black })
@@ -169,7 +171,7 @@ do
 	-- syntax highlights
 	vim.api.nvim_set_hl(0, "Comment", { ctermfg = "gray" })
 	vim.api.nvim_set_hl(0, "Todo", { ctermfg = red, ctermbg = black })
-	vim.api.nvim_set_hl(0, "String", { ctermfg = yellow })
+	vim.api.nvim_set_hl(0, "String", { ctermfg = green })
 	vim.api.nvim_set_hl(0, "Whitespace", { ctermfg = 8 })
 	vim.api.nvim_set_hl(0, "Special", { ctermfg = blue })
 
@@ -193,9 +195,9 @@ do
 	vim.api.nvim_set_hl(0, "markdownOrderedListMarker", { ctermfg = default })
 
 	-- match
-	vim.api.nvim_set_hl(0, "MatchParen", { ctermbg = black, ctermfg = green })
-	vim.api.nvim_set_hl(0, "MatchPairs", { ctermbg = black, ctermfg = green })
-	vim.api.nvim_set_hl(0, "matchTag", { ctermbg = black, ctermfg = green })
+	vim.api.nvim_set_hl(0, "MatchParen", { ctermbg = none, ctermfg = green })
+	vim.api.nvim_set_hl(0, "MatchPairs", { ctermbg = none, ctermfg = green })
+	vim.api.nvim_set_hl(0, "matchTag", { ctermbg = none, ctermfg = green })
 end
 
 --- environment settings
