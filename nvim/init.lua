@@ -30,10 +30,8 @@ require("packer").startup(function(use)
 	use("nvim-tree/nvim-web-devicons")
 
 	use("Shougo/context_filetype.vim") -- single file multiple lang support
-
 	use("leafOfTree/vim-svelte-plugin")
-
-	use("dgagn/diagflow.nvim")
+	use("Glench/Vim-Jinja2-Syntax")
 end)
 
 --- languages and formatting (MUST BE NEAR TOP)
@@ -41,7 +39,7 @@ local function set_indent(opts)
 	vim.opt_local.tabstop = opts.width
 	vim.opt_local.softtabstop = opts.width
 	vim.opt_local.shiftwidth = opts.width
-    vim.opt_local.expandtab = not opts.use_tabs
+	vim.opt_local.expandtab = not opts.use_tabs
 end
 
 vim.api.nvim_create_augroup("setIndent", { clear = true })
@@ -110,13 +108,6 @@ vim.api.nvim_create_autocmd({ "FileType" }, {
 	end,
 })
 
-vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
-	pattern = { "*.jinja", "*.jinja2" },
-	callback = function()
-		vim.bo.filetype = "html"
-	end,
-})
-
 vim.g.vim_svelte_plugin_load_full_syntax = 1
 
 --- color scheme
@@ -153,12 +144,11 @@ do
 
 	-- default text color
 	vim.api.nvim_set_hl(0, "Normal", { ctermfg = default, ctermbg = none })
-	vim.api.nvim_set_hl(0, "CursorLine", { ctermfg = default, ctermbg = green })
 
 	-- interface
+	vim.api.nvim_set_hl(0, "Visual", { ctermfg = none, ctermbg = "darkgray" })
 	vim.api.nvim_set_hl(0, "StatusLine", { ctermfg = default, ctermbg = black })
 	vim.api.nvim_set_hl(0, "LineNr", { ctermfg = brightblack, ctermbg = none })
-	vim.api.nvim_set_hl(0, "Cursor", { ctermbg = black })
 	vim.api.nvim_set_hl(0, "Search", { ctermfg = black, ctermbg = yellow })
 	vim.api.nvim_set_hl(0, "CurSearch", { ctermfg = black, ctermbg = green })
 
@@ -173,15 +163,47 @@ do
 	vim.api.nvim_set_hl(0, "Todo", { ctermfg = red, ctermbg = black })
 	vim.api.nvim_set_hl(0, "String", { ctermfg = green })
 	vim.api.nvim_set_hl(0, "Whitespace", { ctermfg = 8 })
-	vim.api.nvim_set_hl(0, "Special", { ctermfg = blue })
+	vim.api.nvim_set_hl(0, "Special", { ctermfg = brightblue })
+	vim.api.nvim_set_hl(0, "PreProc", { ctermfg = yellow })
+
+	-- match
+	local match_color = magenta
+	vim.api.nvim_set_hl(0, "MatchParen", { ctermbg = none, ctermfg = match_color })
+	vim.api.nvim_set_hl(0, "MatchPairs", { ctermbg = none, ctermfg = match_color })
+	vim.api.nvim_set_hl(0, "matchTag", { ctermbg = none, ctermfg = match_color })
+
+	-- tmux
+	vim.cmd("hi link tmuxVariableExpansion Special")
+	vim.cmd("hi link tmuxFormatString Special")
 
 	-- html
-	vim.api.nvim_set_hl(0, "htmlTag", { ctermfg = brightcyan })
-	vim.api.nvim_set_hl(0, "htmlTagN", { ctermfg = brightcyan })
-	vim.api.nvim_set_hl(0, "htmlTagName", { ctermfg = brightcyan })
-	vim.api.nvim_set_hl(0, "htmlArg", { ctermfg = brightcyan })
-	vim.api.nvim_set_hl(0, "htmlEndTag", { ctermfg = brightcyan })
+	vim.cmd("hi link htmlTag Special")
+	vim.cmd("hi link htmlTagN Special")
+	vim.cmd("hi link htmlTagName Special")
+	vim.cmd("hi link htmlArg Special")
+	vim.cmd("hi link htmlEndTag Special")
+	vim.cmd("hi link htmlSpecialTagName Special")
+	vim.api.nvim_set_hl(0, "jinjaString", { ctermfg = brightgreen })
 
+	vim.cmd("hi link cssVendor Normal")
+	vim.cmd("hi link cssAttrComma Normal")
+	vim.cmd("hi link cssSelectorOp Normal")
+	vim.cmd("hi link cssSelectorOp2 Normal")
+	vim.cmd("hi link cssAttributeSelector Normal")
+	vim.cmd("hi link cssPseudoClassId Normal")
+	vim.cmd("hi link cssAtRule Normal")
+	vim.cmd("hi link cssCustomProp Normal")
+
+	vim.cmd("hi link javaScript Normal")
+
+	-- python
+	vim.cmd("hi link pythonInclude Normal")
+	vim.cmd("hi link pythonDecorator Normal")
+	
+	-- c/c++
+	vim.cmd("hi link cCharacter Special")
+	vim.cmd("hi link cParen MatchParen")
+	
 	-- markdown
 	vim.api.nvim_set_hl(0, "markdownH1", { ctermfg = brightcyan })
 	vim.api.nvim_set_hl(0, "markdownH2", { ctermfg = brightgreen })
@@ -193,11 +215,7 @@ do
 	vim.api.nvim_set_hl(0, "markdownH4Delimiter", { ctermfg = green })
 	vim.api.nvim_set_hl(0, "markdownListMarker", { ctermfg = default })
 	vim.api.nvim_set_hl(0, "markdownOrderedListMarker", { ctermfg = default })
-
-	-- match
-	vim.api.nvim_set_hl(0, "MatchParen", { ctermbg = none, ctermfg = green })
-	vim.api.nvim_set_hl(0, "MatchPairs", { ctermbg = none, ctermfg = green })
-	vim.api.nvim_set_hl(0, "matchTag", { ctermbg = none, ctermfg = green })
+	vim.api.nvim_set_hl(0, "markdownCode", { ctermfg = "gray" })
 end
 
 --- environment settings
