@@ -1,35 +1,35 @@
 --- plugins
-require("paq")({
-	"savq/paq-nvim",
+vim.cmd("packadd packer.nvim")
 
-	"bullets-vim/bullets.vim",
+require("packer").startup(function(use)
+	use("bullets-vim/bullets.vim")
 
-	"leafOfTree/vim-matchtag",
-	"justinmk/vim-matchparenalways",
+	use("leafOfTree/vim-matchtag")
+	use("justinmk/vim-matchparenalways")
 
-	"tpope/vim-surround",
-	"tpope/vim-repeat",
+	use("tpope/vim-surround")
+	use("tpope/vim-repeat")
 
-	-- case insensitive replace (:%S)
-	"tpope/vim-abolish",
+	use("tpope/vim-abolish") -- case insensitive replace (:%S)
 
-	"LunarVim/bigfile.nvim",
+	use("LunarVim/bigfile.nvim")
 
-	"szw/vim-maximizer",
-	"shortcuts/no-neck-pain.nvim",
-	"ten3roberts/window-picker.nvim",
+	use("szw/vim-maximizer")
+	use("shortcuts/no-neck-pain.nvim")
+	use("ten3roberts/window-picker.nvim")
 
-	"nvim-lua/plenary.nvim", -- needed for telescope
-	"nvim-telescope/telescope-fzf-native.nvim",
-	"nvim-telescope/telescope.nvim",
+	use({
+		"nvim-telescope/telescope.nvim",
+		requires = { "nvim-lua/plenary.nvim", "nvim-telescope/telescope-fzf-native.nvim" },
+	})
 
-	"folke/trouble.nvim",
-	"nvim-tree/nvim-web-devicons",
+	use("folke/trouble.nvim")
+	use("nvim-tree/nvim-web-devicons")
 
-	"leafOfTree/vim-svelte-plugin",
+	use("leafOfTree/vim-svelte-plugin",)
 
-	"dgagn/diagflow.nvim",
-})
+	use("dgagn/diagflow.nvim")
+end)
 
 --- languages and formatting (MUST BE NEAR TOP)
 local function set_indent(opts)
@@ -185,7 +185,7 @@ local init_file = "~/.config/nvim/init.lua"
 local refresh_cmd = ":so " .. init_file .. "<CR>"
 vim.keymap.set("n", "<leader>,e", ":e " .. init_file .. "<CR>")
 vim.keymap.set("n", "<leader>,r", refresh_cmd)
-vim.keymap.set("n", "<leader>,p", refresh_cmd .. ":PaqSync<CR>")
+vim.keymap.set("n", "<leader>,p", refresh_cmd .. ":PackerSync<CR>")
 
 -- window navigation
 vim.keymap.set("", "<C-h>", "<C-w>h")
@@ -210,7 +210,7 @@ vim.keymap.set("t", "<Esc>", "<C-\\><C-n>")
 -- disable highlight
 vim.keymap.set("n", "g<Return>", ":noh<CR>")
 
---- plugin keybindings
+--- plugin settings and keybindings
 -- telescope
 require("telescope").setup({
 	defaults = {
