@@ -267,17 +267,18 @@ vim.api.nvim_set_keymap("n", "<leader>w", ":WindowPick<CR>", {})
 vim.api.nvim_set_keymap("n", "<leader>W", ":WindowSwap<CR>", {})
 
 -- center window
-require("no-neck-pain").setup({
-	width = 150,
-})
-
 local function toggle_window_centering()
-	require("no-neck-pain").toggle()
+    require("no-neck-pain").setup({
+        width = 120,
+    })
+    vim.cmd("NoNeckPain")
 end
 
 local function toggle_presentation_mode()
-	toggle_window_centering()
-	require("no-neck-pain").resize(50)
+    require("no-neck-pain").setup({
+        width = 50,
+    })
+    vim.cmd("NoNeckPain")
 end
 
 vim.keymap.set("", "<leader>g", toggle_window_centering)
