@@ -1,4 +1,4 @@
--- plugins
+--- plugins
 require("paq")({
 	"savq/paq-nvim",
 
@@ -13,9 +13,6 @@ require("paq")({
 	-- case insensitive replace (:%S)
 	"tpope/vim-abolish",
 
-	-- set buffer settings (e.g. expandtab/shiftwidth) automatically based on current file
-	"tpope/vim-sleuth",
-
 	"LunarVim/bigfile.nvim",
 
 	"szw/vim-maximizer",
@@ -29,11 +26,191 @@ require("paq")({
 	"folke/trouble.nvim",
 	"nvim-tree/nvim-web-devicons",
 
-	"numirias/semshi",
+	"leafOfTree/vim-svelte-plugin",
 
 	"dgagn/diagflow.nvim",
 })
 
+--- languages and formatting (MUST BE NEAR TOP)
+local function set_indent(opts)
+	vim.opt_local.tabstop = opts.width
+	vim.opt_local.softtabstop = opts.width
+	vim.opt_local.shiftwidth = opts.width
+	vim.opt_local.expandtab = not opts.use_tabs or true
+end
+
+vim.api.nvim_create_augroup("setIndent", { clear = true })
+vim.api.nvim_create_autocmd({ "FileType" }, {
+	group = "setIndent",
+	pattern = {
+		"css",
+		"html",
+		"javascript",
+		"typescript",
+		"scss",
+		"xml",
+		"xhtml",
+		"yaml",
+		"jinja",
+		"svelte",
+		"markdown",
+		"md",
+	},
+	callback = function()
+		set_indent({ width = 2 })
+	end,
+})
+
+vim.api.nvim_create_autocmd({ "FileType" }, {
+	group = "setIndent",
+	pattern = {
+		"lua",
+	},
+	callback = function()
+		set_indent({ width = 4, use_tabs = true })
+	end,
+})
+
+vim.api.nvim_create_autocmd({ "FileType" }, {
+	group = "setIndent",
+	pattern = {
+		"go",
+	},
+	callback = function()
+		set_indent({ width = 8, use_tabs = true })
+	end,
+})
+
+vim.api.nvim_create_autocmd({ "FileType" }, {
+	group = "setIndent",
+	pattern = {
+		"python",
+		"cpp",
+		"c",
+		"java",
+		"groovy",
+		"json",
+	},
+	callback = function()
+		set_indent({ width = 4 })
+	end,
+})
+
+vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
+	pattern = { "*.jinja", "*.jinja2" },
+	callback = function()
+		vim.bo.filetype = "html"
+	end,
+})
+
+vim.g.vim_svelte_plugin_load_full_syntax = 1
+
+--- color scheme
+vim.o.termguicolors = false
+vim.opt.background = "dark"
+vim.cmd("colorscheme default")
+vim.cmd("set t_Co=8")
+
+vim.cmd("syntax clear")
+vim.cmd("syntax on")
+
+-- interface
+vim.cmd("highlight Normal ctermbg=NONE guibg=NONE")
+vim.cmd("highlight LineNr ctermfg=8 ctermbg=NONE guibg=NONE")
+vim.cmd("highlight CursorLine ctermbg=black")
+
+-- force no highlight
+vim.cmd("highlight Function ctermfg=NONE")
+vim.cmd("highlight Class ctermfg=NONE")
+vim.cmd("highlight Identifier ctermfg=NONE")
+vim.cmd("highlight Statement ctermfg=NONE")
+
+-- highlights
+vim.cmd("highlight Cursor     ctermbg=0")
+vim.cmd("highlight Comment    ctermfg=15")
+vim.cmd("highlight Todo       ctermfg=red ctermbg=black")
+vim.cmd("highlight String     ctermfg=green")
+vim.cmd("highlight Comment    ctermfg=15")
+vim.cmd("highlight Whitespace ctermfg=8")
+vim.cmd("highlight Special    ctermfg=yellow")
+
+vim.cmd("highlight htmlTag     ctermfg=14")
+vim.cmd("highlight htmlTagN    ctermfg=14")
+vim.cmd("highlight htmlTagName ctermfg=14")
+vim.cmd("highlight htmlArg     ctermfg=14")
+vim.cmd("highlight htmlEndTag  ctermfg=14")
+
+vim.cmd("highlight markdownH1  ctermfg=14")
+vim.cmd("highlight markdownH2  ctermfg=10")
+vim.cmd("highlight markdownH3  ctermfg=6")
+vim.cmd("highlight markdownH4  ctermfg=2")
+vim.cmd("highlight markdownH1Delimiter ctermfg=14")
+vim.cmd("highlight markdownH2Delimiter ctermfg=10")
+vim.cmd("highlight markdownH3Delimiter ctermfg=6")
+vim.cmd("highlight markdownH4Delimiter ctermfg=2")
+vim.cmd("highlight markdownListMarker        ctermfg=NONE")
+vim.cmd("highlight markdownOrderedListMarker ctermfg=NONE")
+
+vim.cmd("highlight MatchParen cterm=NONE ctermbg=black ctermfg=magenta")
+vim.cmd("highlight MatchPairs cterm=NONE ctermbg=black ctermfg=magenta")
+vim.cmd("highlight matchTag   cterm=NONE ctermbg=black ctermfg=magenta")
+
+--- environment settings
+vim.cmd("autocmd FocusGained * checktime")
+
+vim.opt.list = true
+vim.opt.clipboard = "unnamedplus"
+
+vim.opt.number = true
+vim.opt.relativenumber = true
+
+vim.opt.splitbelow = true
+vim.opt.splitright = true
+
+vim.opt.ignorecase = true
+vim.opt.smartcase = true
+
+vim.opt.showcmd = true
+vim.opt.hlsearch = true
+
+vim.opt.undodir = vim.fn.expand("~/.vimdid/")
+vim.opt.undofile = true
+
+vim.opt.cursorline = true
+vim.opt.cursorlineopt = "both"
+
+--- native keybindings
+-- config keybindings
+local init_file = "~/.config/nvim/init.lua"
+local refresh_cmd = ":so " .. init_file .. "<CR>"
+vim.keymap.set("n", "<leader>,e", ":e " .. init_file .. "<CR>")
+vim.keymap.set("n", "<leader>,r", refresh_cmd)
+vim.keymap.set("n", "<leader>,p", refresh_cmd .. ":PaqSync<CR>")
+
+-- window navigation
+vim.keymap.set("", "<C-h>", "<C-w>h")
+vim.keymap.set("", "<C-j>", "<C-w>j")
+vim.keymap.set("", "<C-k>", "<C-w>k")
+vim.keymap.set("", "<C-l>", "<C-w>l")
+
+vim.keymap.set("i", "<C-h>", "<Esc><C-w>h")
+vim.keymap.set("i", "<C-j>", "<Esc><C-w>j")
+vim.keymap.set("i", "<C-k>", "<Esc><C-w>k")
+vim.keymap.set("i", "<C-l>", "<Esc><C-w>l")
+
+-- horizontal scroll
+vim.keymap.set("", "<S-ScrollWheelUp>", "4zh")
+vim.keymap.set("", "<S-ScrollWheelDown>", "4zl")
+vim.keymap.set("", "<S-Left>", "8zh")
+vim.keymap.set("", "<S-Right>", "8zl")
+
+-- terminal normal mode
+vim.keymap.set("t", "<Esc>", "<C-\\><C-n>")
+
+-- disable highlight
+vim.keymap.set("n", "g<Return>", ":noh<CR>")
+
+--- plugin keybindings
 -- telescope
 require("telescope").setup({
 	defaults = {
@@ -89,191 +266,28 @@ vim.api.nvim_set_keymap("n", "<leader>W", ":WindowSwap<CR>", {})
 require("no-neck-pain").setup({
 	width = 150,
 })
-vim.keymap.set("", "<leader>g", ":NoNeckPain<CR>")
+
+local function toggle_window_centering()
+	require("no-neck-pain").toggle()
+end
+
+local function toggle_presentation_mode()
+	toggle_window_centering()
+	require("no-neck-pain").resize(50)
+end
+
+vim.keymap.set("", "<leader>g", toggle_window_centering)
+vim.keymap.set("", "<leader>G", toggle_presentation_mode)
 
 -- maximizer
 vim.keymap.set("", "<leader>z", ":MaximizerToggle<CR>")
 
--- languages and formatting
-vim.api.nvim_create_augroup("setIndent", { clear = true })
-vim.api.nvim_create_autocmd({ "FileType" }, {
-	group = "setIndent",
-	pattern = {
-		"css",
-		"html",
-		"javascript",
-		"typescript",
-		"scss",
-		"xml",
-		"xhtml",
-		"yaml",
-		"jinja",
-		"svelte",
-		"markdown",
-		"md",
-	},
-	command = "setlocal tabstop=2 softtabstop=2 shiftwidth=2 tabstop=2 expandtab",
-})
-
-vim.api.nvim_create_autocmd({ "FileType" }, {
-	group = "setIndent",
-	pattern = {
-		"lua",
-	},
-	command = "setlocal tabstop=4 softtabstop=4 shiftwidth=4 tabstop=4 noexpandtab",
-})
-
-vim.api.nvim_create_autocmd({ "FileType" }, {
-	group = "setIndent",
-	pattern = {
-		"go",
-	},
-	command = "setlocal tabstop=8 softtabstop=8 shiftwidth=8 tabstop=8 noexpandtab",
-})
-
-vim.api.nvim_create_autocmd({ "FileType" }, {
-	group = "setIndent",
-	pattern = {
-		"python",
-		"cpp",
-		"c",
-		"java",
-		"groovy",
-		"json",
-	},
-	command = "setlocal tabstop=4 softtabstop=4 shiftwidth=4 tabstop=4 expandtab",
-})
-
-vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
-	pattern = { "*.jinja", "*.jinja2" },
-	callback = function()
-		vim.bo.filetype = "html"
-	end,
-})
-
--- cursor settings
-vim.opt.cursorline = true
-vim.opt.cursorlineopt = "number"
-
--- color scheme
-vim.o.termguicolors = false
-vim.opt.background = "dark"
-vim.cmd("colorscheme default")
-vim.cmd("set t_Co=8")
-
-vim.cmd("syntax clear")
-vim.cmd("syntax on")
-
-local function apply_semshi()
-	-- see https://github.com/numirias/semshi?tab=readme-ov-file#highlights
-	vim.cmd("highlight semshiGlobal     ctermfg=NONE")
-	vim.cmd("highlight semshiImported   ctermfg=NONE")
-	vim.cmd("highlight semshiBuiltin    ctermfg=NONE")
-	vim.cmd("highlight semshiAttribute  ctermfg=NONE")
-	vim.cmd("highlight semshiFree       ctermfg=magenta")
-	vim.cmd("highlight semshiSelected   ctermfg=black ctermbg=blue")
-	vim.cmd("highlight semshiParameter  ctermfg=cyan")
-end
-
-vim.api.nvim_create_autocmd({ "FileType" }, { pattern = { "python" }, callback = apply_semshi })
-vim.api.nvim_create_autocmd({ "ColorScheme" }, { pattern = { "*" }, callback = apply_semshi })
-
-vim.cmd("highlight Function ctermfg=NONE")
-vim.cmd("highlight Class ctermfg=NONE")
-vim.cmd("highlight Identifier ctermfg=NONE")
-vim.cmd("highlight Statement ctermfg=NONE")
-vim.cmd("highlight Special ctermfg=NONE")
-
-vim.cmd("highlight Cursor  ctermbg=0")
-vim.cmd("highlight Comment ctermfg=15")
-vim.cmd("highlight Todo    ctermfg=black ctermbg=red")
-vim.cmd("highlight String guifg=green ctermfg=green")
-vim.cmd("highlight Comment ctermfg=15 guifg=white")
-vim.cmd("highlight Whitespace ctermfg=8")
-
-vim.cmd("highlight MatchParen cterm=NONE ctermbg=black ctermfg=magenta")
-vim.cmd("highlight MatchPairs cterm=NONE ctermbg=8 ctermfg=black")
-vim.cmd("highlight matchTag   cterm=NONE ctermbg=8 ctermfg=black")
-
-vim.cmd("highlight Normal ctermbg=NONE guibg=NONE")
-vim.cmd("highlight LineNr ctermfg=8 ctermbg=NONE guibg=NONE")
-
--- environment settings
-vim.cmd("autocmd FocusGained * checktime")
-
-vim.opt.list = true
-vim.opt.clipboard = "unnamedplus"
-
-vim.opt.number = true
-vim.opt.relativenumber = true
-
-vim.opt.splitbelow = true
-vim.opt.splitright = true
-
-vim.opt.ignorecase = true
-vim.opt.smartcase = true
-
-vim.opt.showcmd = true
-vim.opt.hlsearch = true
-
-vim.opt.undodir = vim.fn.expand("~/.vimdid/")
-vim.opt.undofile = true
-
-vim.keymap.set("n", "g<Return>", ":noh<CR>")
-
--- custom commands
+--- custom commands and keybindings
 -- uppercase corrections
 vim.api.nvim_create_user_command("W", "w", {})
 vim.api.nvim_create_user_command("Sp", "sp", {})
 vim.api.nvim_create_user_command("Vsp", "vsp", {})
 
--- trim whitespace at end of lines
-local function trim_whitespace()
-	local save = vim.fn.winsaveview()
-	vim.api.nvim_exec("%s/\\s\\+$//e", false)
-	vim.fn.winrestview(save)
-end
-
-vim.api.nvim_create_user_command("TrimWhitespace", trim_whitespace, {})
-vim.keymap.set("", "<leader>s", ":TrimWhitespace<CR>")
-
--- rename file
-vim.api.nvim_create_user_command("Rn", function(opts)
-	local old_name = vim.fn.expand("%")
-	local new_name = opts.fargs[1]
-	vim.api.nvim_exec2("f " .. new_name, {})
-	vim.api.nvim_exec2("w", {})
-	vim.api.nvim_exec2("!rm " .. old_name, {})
-end, { nargs = 1 })
-
--- config keybindings
-local init_file = "~/.config/nvim/init.lua"
-local refresh_cmd = ":so " .. init_file .. "<CR>"
-vim.keymap.set("n", "<leader>,e", ":e " .. init_file .. "<CR>")
-vim.keymap.set("n", "<leader>,r", refresh_cmd)
-vim.keymap.set("n", "<leader>,p", refresh_cmd .. ":PaqSync<CR>")
-
--- window navigation
-vim.keymap.set("", "<C-h>", "<C-w>h")
-vim.keymap.set("", "<C-j>", "<C-w>j")
-vim.keymap.set("", "<C-k>", "<C-w>k")
-vim.keymap.set("", "<C-l>", "<C-w>l")
-
-vim.keymap.set("i", "<C-h>", "<Esc><C-w>h")
-vim.keymap.set("i", "<C-j>", "<Esc><C-w>j")
-vim.keymap.set("i", "<C-k>", "<Esc><C-w>k")
-vim.keymap.set("i", "<C-l>", "<Esc><C-w>l")
-
--- horizontal scroll
-vim.keymap.set("", "<S-ScrollWheelUp>", "4zh")
-vim.keymap.set("", "<S-ScrollWheelDown>", "4zl")
-vim.keymap.set("", "<S-Left>", "8zh")
-vim.keymap.set("", "<S-Right>", "8zl")
-
--- terminal normal mode
-vim.keymap.set("t", "<Esc>", "<C-\\><C-n>")
-
--- misc commands
 -- cursor centering for easier prose writing
 vim.g.force_cursor_center = false
 
@@ -301,4 +315,32 @@ vim.keymap.set("", "<leader>c", ":ToggleCenter<CR>")
 -- set filetype shortcut
 vim.api.nvim_create_user_command("F", function(opts)
 	vim.bo.filetype = opts.fargs[1]
+end, { nargs = 1 })
+
+-- trim whitespace at end of lines
+local function trim_whitespace()
+	local current_view = vim.fn.winsaveview()
+	vim.api.nvim_exec("%s/\\s\\+$//e", false)
+	vim.fn.winrestview(current_view)
+end
+
+vim.api.nvim_create_user_command("TrimWhitespace", trim_whitespace, {})
+vim.keymap.set("", "<leader>s", ":TrimWhitespace<CR>")
+
+-- rename file
+local function copy_file(new_name)
+	vim.api.nvim_exec2("f " .. new_name, {})
+	vim.api.nvim_exec2("w", {})
+end
+
+vim.api.nvim_create_user_command("Cp", function(opts)
+	local new_name = opts.fargs[1]
+	copy_file(new_name)
+end, { nargs = 1 })
+
+vim.api.nvim_create_user_command("Rn", function(opts)
+	local old_name = vim.fn.expand("%")
+	local new_name = opts.fargs[1]
+	copy_file(new_name)
+	vim.api.nvim_exec2("!rm " .. old_name, {})
 end, { nargs = 1 })
