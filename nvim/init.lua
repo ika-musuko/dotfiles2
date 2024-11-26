@@ -2,6 +2,8 @@
 vim.cmd("packadd packer.nvim")
 
 require("packer").startup(function(use)
+	use("wbthomason/packer.nvim") -- packer itself
+
 	use("bullets-vim/bullets.vim")
 
 	use("leafOfTree/vim-matchtag")
@@ -11,6 +13,8 @@ require("packer").startup(function(use)
 	use("tpope/vim-repeat")
 
 	use("tpope/vim-abolish") -- case insensitive replace (:%S)
+
+    use("michaeljsmith/vim-indent-object")
 
 	use("LunarVim/bigfile.nvim")
 
@@ -26,7 +30,7 @@ require("packer").startup(function(use)
 	use("folke/trouble.nvim")
 	use("nvim-tree/nvim-web-devicons")
 
-	use("leafOfTree/vim-svelte-plugin",)
+	use("leafOfTree/vim-svelte-plugin")
 
 	use("dgagn/diagflow.nvim")
 end)
@@ -177,7 +181,7 @@ vim.opt.undodir = vim.fn.expand("~/.vimdid/")
 vim.opt.undofile = true
 
 vim.opt.cursorline = true
-vim.opt.cursorlineopt = "both"
+vim.opt.cursorlineopt = "number"
 
 --- native keybindings
 -- config keybindings
