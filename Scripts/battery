@@ -6,7 +6,7 @@ status=$(echo $command | cut -d' ' -f 2)
 
 get_icon() {
   if [ $status == "charging" ] || [ $status == "charged" ]; then
-    echo "#[fg=yellow] #[fg=default]"
+    echo "#[fg=yellow] #[fg=green]"
   elif [ $battery_level -le 20 ]; then
     echo "#[fg=red] "
   elif [ $battery_level -le 40 ]; then

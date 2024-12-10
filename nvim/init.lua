@@ -14,13 +14,14 @@ require("packer").startup(function(use)
 
 	use("tpope/vim-abolish") -- case insensitive replace (:%S)
 
+	use("tpope/vim-sleuth") -- try to respect current project's indent settings
+
 	use("michaeljsmith/vim-indent-object")
 
 	use("LunarVim/bigfile.nvim")
 
 	use("szw/vim-maximizer")
 	use("shortcuts/no-neck-pain.nvim")
-	use("ten3roberts/window-picker.nvim")
 
 	use({
 		"nvim-telescope/telescope.nvim",
@@ -31,6 +32,8 @@ require("packer").startup(function(use)
 
 	use("Shougo/context_filetype.vim") -- single file multiple lang support
 	use("leafOfTree/vim-svelte-plugin")
+	use("leafOfTree/vim-vue-plugin")
+	use("terrastruct/d2-vim")
 	use("Glench/Vim-Jinja2-Syntax")
 end)
 
@@ -57,6 +60,7 @@ vim.api.nvim_create_autocmd({ "FileType" }, {
 		"jinja",
 		"markdown",
 		"md",
+		"d2",
 	},
 	callback = function()
 		set_indent({ width = 2 })
@@ -147,43 +151,58 @@ do
 
 	-- interface
 	vim.api.nvim_set_hl(0, "Visual", { ctermfg = none, ctermbg = "darkgray" })
-	vim.api.nvim_set_hl(0, "StatusLine", { ctermfg = default, ctermbg = black })
-	vim.api.nvim_set_hl(0, "LineNr", { ctermfg = brightblack, ctermbg = none })
+
+	vim.api.nvim_set_hl(0, "StatusLine", { ctermfg = white, ctermbg = brightblack })
+	vim.api.nvim_set_hl(0, "StatusLineNC", { ctermfg = brightblack, ctermbg = black })
+
 	vim.api.nvim_set_hl(0, "Search", { ctermfg = black, ctermbg = yellow })
 	vim.api.nvim_set_hl(0, "CurSearch", { ctermfg = black, ctermbg = green })
 
-	-- force no highlight
-	vim.api.nvim_set_hl(0, "Function", { ctermfg = default })
-	vim.api.nvim_set_hl(0, "Class", { ctermfg = default })
-	vim.api.nvim_set_hl(0, "Identifier", { ctermfg = default })
-	vim.api.nvim_set_hl(0, "Statement", { ctermfg = default })
+	vim.api.nvim_set_hl(0, "LineNr", { ctermfg = brightblack, ctermbg = none })
+	vim.api.nvim_set_hl(0, "CursorLineNr", { ctermfg = brightwhite, ctermbg = none })
 
 	-- syntax highlights
-	vim.api.nvim_set_hl(0, "Comment", { ctermfg = "gray" })
-	vim.api.nvim_set_hl(0, "Todo", { ctermfg = red, ctermbg = black })
-	vim.api.nvim_set_hl(0, "String", { ctermfg = green })
+	vim.api.nvim_set_hl(0, "Function", { ctermfg = brightblue })
+	vim.api.nvim_set_hl(0, "Class", { ctermfg = cyan })
+	vim.api.nvim_set_hl(0, "Identifier", { ctermfg = blue })
+	vim.api.nvim_set_hl(0, "Statement", { ctermfg = blue })
+	vim.api.nvim_set_hl(0, "Constant", { ctermfg = brightgreen })
+
+	vim.api.nvim_set_hl(0, "Comment", { ctermfg = green })
+
+	vim.api.nvim_set_hl(0, "String", { ctermfg = brightmagenta })
+
 	vim.api.nvim_set_hl(0, "Whitespace", { ctermfg = 8 })
-	vim.api.nvim_set_hl(0, "Special", { ctermfg = brightblue })
-	vim.api.nvim_set_hl(0, "PreProc", { ctermfg = yellow })
+
+	vim.api.nvim_set_hl(0, "Special", { ctermfg = brightcyan })
+
+	vim.api.nvim_set_hl(0, "PreProc", { ctermfg = brightred })
+
+	vim.api.nvim_set_hl(0, "Todo", { ctermfg = red, ctermbg = black })
 
 	-- match
-	local match_color = magenta
-	vim.api.nvim_set_hl(0, "MatchParen", { ctermbg = none, ctermfg = match_color })
-	vim.api.nvim_set_hl(0, "MatchPairs", { ctermbg = none, ctermfg = match_color })
-	vim.api.nvim_set_hl(0, "matchTag", { ctermbg = none, ctermfg = match_color })
+	local match_bg = "gray"
+	local match_fg = black
+	vim.api.nvim_set_hl(0, "MatchParen", { ctermbg = match_bg, ctermfg = match_fg })
+	vim.api.nvim_set_hl(0, "MatchPairs", { ctermbg = match_bg, ctermfg = match_fg })
+	vim.api.nvim_set_hl(0, "matchTag", { ctermbg = match_bg, ctermfg = match_fg })
 
 	-- tmux
 	vim.cmd("hi link tmuxVariableExpansion Special")
 	vim.cmd("hi link tmuxFormatString Special")
 
+	-- lua
+	vim.cmd("hi link @function.builtin.lua Normal")
+	
 	-- html
-	vim.cmd("hi link htmlTag Special")
-	vim.cmd("hi link htmlTagN Special")
-	vim.cmd("hi link htmlTagName Special")
-	vim.cmd("hi link htmlArg Special")
-	vim.cmd("hi link htmlEndTag Special")
-	vim.cmd("hi link htmlSpecialTagName Special")
-	vim.api.nvim_set_hl(0, "jinjaString", { ctermfg = brightgreen })
+	--vim.cmd("hi link htmlTag Normal")
+	--vim.cmd("hi link htmlTagN Normal")
+	--vim.cmd("hi link htmlTagName Normal")
+	--vim.cmd("hi link htmlArg Normal")
+	--vim.cmd("hi link htmlEndTag Normal")
+	--vim.cmd("hi link htmlNormalTagName Normal")
+	local jinja_color = brightcyan
+	vim.api.nvim_set_hl(0, "jinjaString", { ctermfg = jinja_color })
 
 	vim.cmd("hi link cssVendor Normal")
 	vim.cmd("hi link cssAttrComma Normal")
@@ -195,14 +214,30 @@ do
 	vim.cmd("hi link cssCustomProp Normal")
 
 	vim.cmd("hi link javaScript Normal")
+	vim.cmd("hi link javaScriptEmbed Normal")
+	vim.cmd("hi link javaScriptBraces Normal")
+
+	-- vue
+	local vue_color = brightcyan
+	vim.api.nvim_set_hl(0, "VueQuote", { ctermfg = vue_color })
+	vim.api.nvim_set_hl(0, "VueAttr", { ctermfg = vue_color })
+	vim.api.nvim_set_hl(0, "VueKey", { ctermfg = vue_color })
+	vim.api.nvim_set_hl(0, "VueValue", { ctermfg = vue_color })
+
+	vim.cmd("hi link VueExpression PreProc")
+	vim.cmd("hi link VueBrace PreProc")
 
 	-- python
-	vim.cmd("hi link pythonInclude Normal")
-	vim.cmd("hi link pythonDecorator Normal")
-	
+	--vim.cmd("hi link pythonInclude Statement")
+	--vim.cmd("hi link pythonDecorator Statement")
+	--vim.cmd("hi link pythonDecoratorName Statement")
+
 	-- c/c++
 	vim.cmd("hi link cCharacter Special")
 	vim.cmd("hi link cParen MatchParen")
+
+	-- d2
+	vim.cmd("hi link d2Operator Special")
 	
 	-- markdown
 	vim.api.nvim_set_hl(0, "markdownH1", { ctermfg = brightcyan })
@@ -215,7 +250,8 @@ do
 	vim.api.nvim_set_hl(0, "markdownH4Delimiter", { ctermfg = green })
 	vim.api.nvim_set_hl(0, "markdownListMarker", { ctermfg = default })
 	vim.api.nvim_set_hl(0, "markdownOrderedListMarker", { ctermfg = default })
-	vim.api.nvim_set_hl(0, "markdownCode", { ctermfg = "gray" })
+	vim.api.nvim_set_hl(0, "markdownCode", { ctermfg = brightyellow })
+	vim.api.nvim_set_hl(0, "markdownCodeBlock", { ctermfg = brightyellow })
 end
 
 --- environment settings
@@ -243,24 +279,15 @@ vim.opt.cursorline = true
 vim.opt.cursorlineopt = "number"
 
 --- native keybindings
--- config keybindings
+-- config keybindings and commands
 do
 	local init_file = "~/.config/nvim/init.lua"
-
-	local function edit_config()
-		vim.cmd.edit(init_file)
-	end
 
 	local function reload_config()
 		vim.cmd.source(init_file)
 	end
 
-	vim.keymap.set("n", "<leader>,e", edit_config)
-	vim.keymap.set("n", "<leader>,r", reload_config)
-	vim.keymap.set("n", "<leader>,p", function()
-		reload_config()
-		vim.cmd("PackerSync")
-	end)
+	vim.keymap.set("n", "<M-/>", reload_config)
 end
 
 -- window navigation
@@ -274,6 +301,9 @@ vim.keymap.set("i", "<C-j>", "<Esc><C-w>j")
 vim.keymap.set("i", "<C-k>", "<Esc><C-w>k")
 vim.keymap.set("i", "<C-l>", "<Esc><C-w>l")
 
+vim.keymap.set("n", "<M-f>", "<C-w><C-w>")
+vim.keymap.set("n", "<M-g>", "<C-6>")
+
 -- horizontal scroll
 vim.keymap.set("", "<S-ScrollWheelUp>", "4zh")
 vim.keymap.set("", "<S-ScrollWheelDown>", "4zl")
@@ -284,7 +314,7 @@ vim.keymap.set("", "<S-Right>", "8zl")
 vim.keymap.set("t", "<Esc>", "<C-\\><C-n>")
 
 -- disable highlight
-vim.keymap.set("n", "g<Return>", ":noh<CR>")
+vim.keymap.set("n", "g<Return>", function() vim.cmd("noh") end)
 
 --- plugin settings and keybindings
 -- telescope
@@ -328,16 +358,6 @@ vim.keymap.set("", "<leader>P", file_opener_ignore_vcs)
 vim.keymap.set("", "<leader>b", buffer_opener)
 vim.keymap.set("", "<leader>f", live_grep)
 
--- window-picker
-require("window-picker").setup({
-	keys = "asdfvrcexwzqgbthnyjmukilop",
-	swap_shift = true,
-	exclude = { qf = true, NvimTree = true, aerial = true },
-	hide_other_statuslines = false,
-})
-vim.api.nvim_set_keymap("n", "<leader>w", ":WindowPick<CR>", {})
-vim.api.nvim_set_keymap("n", "<leader>W", ":WindowSwap<CR>", {})
-
 -- center window
 local function toggle_window_centering()
 	require("no-neck-pain").setup({
@@ -364,6 +384,9 @@ vim.keymap.set("", "<leader>z", ":MaximizerToggle<CR>")
 vim.api.nvim_create_user_command("W", "w", {})
 vim.api.nvim_create_user_command("Sp", "sp", {})
 vim.api.nvim_create_user_command("Vsp", "vsp", {})
+
+-- syntax
+vim.keymap.set("", "<leader>i", function() vim.cmd("Inspect") end)
 
 -- cursor centering for easier prose writing
 vim.g.force_cursor_center = false
@@ -406,18 +429,22 @@ vim.keymap.set("", "<leader>s", ":TrimWhitespace<CR>")
 
 -- rename file
 local function copy_file(new_name)
-	vim.api.nvim_exec2("f " .. new_name, {})
-	vim.api.nvim_exec2("w", {})
+	vim.cmd("f " .. new_name)
+	vim.cmd("w")
 end
 
-vim.api.nvim_create_user_command("Cp", function(opts)
-	local new_name = opts.fargs[1]
-	copy_file(new_name)
+vim.api.nvim_create_user_command("Edit", function(opts)
+	local current_dir = vim.fn.expand("%:p:h")
+	local name = opts.fargs[1]
+
+	local new_file = current_dir .. "/" .. name
+	vim.cmd("e " .. new_file)
 end, { nargs = 1 })
 
-vim.api.nvim_create_user_command("Rn", function(opts)
+vim.api.nvim_create_user_command("Mv", function(opts)
 	local old_name = vim.fn.expand("%")
+	local current_dir = vim.fn.expand("%:p:h")
 	local new_name = opts.fargs[1]
-	copy_file(new_name)
-	vim.api.nvim_exec2("!rm " .. old_name, {})
+	copy_file(current_dir .. "/" .. new_name)
+	vim.cmd("!rm " .. old_name)
 end, { nargs = 1 })
