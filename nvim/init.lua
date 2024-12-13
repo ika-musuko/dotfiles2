@@ -1,4 +1,4 @@
---- plugins
+--- PLUGINs
 vim.cmd("packadd packer.nvim")
 
 require("packer").startup(function(use)
@@ -9,8 +9,9 @@ require("packer").startup(function(use)
 	use("leafOfTree/vim-matchtag")
 	use("justinmk/vim-matchparenalways")
 
-	use("tpope/vim-surround")
+	use("ika-musuko/vim-surround")
 	use("tpope/vim-repeat")
+	use("tpope/vim-scriptease")
 
 	use("tpope/vim-abolish") -- case insensitive replace (:%S)
 
@@ -31,13 +32,18 @@ require("packer").startup(function(use)
 	use("nvim-tree/nvim-web-devicons")
 
 	use("Shougo/context_filetype.vim") -- single file multiple lang support
+	use({
+		"nvim-treesitter/nvim-treesitter",
+		run = ":TSUpdate",
+	})
+
 	use("leafOfTree/vim-svelte-plugin")
 	use("leafOfTree/vim-vue-plugin")
 	use("terrastruct/d2-vim")
 	use("Glench/Vim-Jinja2-Syntax")
 end)
 
---- languages and formatting (MUST BE NEAR TOP)
+--- language indenting (MUST BE NEAR TOP)
 local function set_indent(opts)
 	vim.opt_local.tabstop = opts.width
 	vim.opt_local.softtabstop = opts.width
@@ -110,6 +116,17 @@ vim.api.nvim_create_autocmd({ "FileType" }, {
 	callback = function()
 		set_indent({ width = 4 })
 	end,
+})
+
+-- language highlighting
+require("nvim-treesitter.configs").setup({
+	highlight = { enable = true },
+	incremental_selection = { enable = true },
+	textobjects = { enable = true },
+	ensure_installed = {
+		"javascript",
+		"lua",
+	},
 })
 
 vim.g.vim_svelte_plugin_load_full_syntax = 1
@@ -189,7 +206,7 @@ do
 	-- lua
 	vim.cmd("hi link @function.builtin.lua Normal")
 	vim.cmd("hi link @constructor.lua Normal")
-	
+
 	-- html
 	local html_tag_color = brightblue
 	vim.api.nvim_set_hl(0, "htmlTag", { ctermfg = brightgreen })
@@ -237,7 +254,7 @@ do
 
 	-- d2
 	vim.cmd("hi link d2Operator Special")
-	
+
 	-- markdown
 	local h1 = cyan
 	local h2 = blue
@@ -320,8 +337,10 @@ vim.keymap.set("", "<S-Right>", "8zl")
 -- terminal normal mode
 vim.keymap.set("t", "<Esc>", "<C-\\><C-n>")
 
--- disable highlight
-vim.keymap.set("n", "g<Return>", function() vim.cmd("noh") end)
+-- disable search highlight
+vim.keymap.set("n", "g<Return>", function()
+	vim.cmd("noh")
+end)
 
 --- plugin settings and keybindings
 -- telescope
@@ -393,7 +412,9 @@ vim.api.nvim_create_user_command("Sp", "sp", {})
 vim.api.nvim_create_user_command("Vsp", "vsp", {})
 
 -- syntax
-vim.keymap.set("", "<leader>i", function() vim.cmd("Inspect") end)
+vim.keymap.set("", "<leader>i", function()
+	vim.cmd("Inspect")
+end)
 
 -- cursor centering for easier prose writing
 vim.g.force_cursor_center = false
@@ -455,3 +476,10 @@ vim.api.nvim_create_user_command("Mv", function(opts)
 	copy_file(current_dir .. "/" .. new_name)
 	vim.cmd("!rm " .. old_name)
 end, { nargs = 1 })
+
+-- show :messages in a new buffer and switch back to current window
+function show_messages_buffer()
+	vim.cmd("Messages")
+	vim.cmd("wincmd p")
+end
+vim.keymap.set("", "<leader>m", show_messages_buffer)
