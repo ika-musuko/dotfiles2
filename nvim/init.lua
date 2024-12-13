@@ -142,9 +142,10 @@ do
 	local brightcyan = 14
 	local brightwhite = 15
 
-	-- color helpers
-	local default = white
 	local none = "NONE"
+
+	-- color helpers
+	local default = none
 
 	-- default text color
 	vim.api.nvim_set_hl(0, "Normal", { ctermfg = default, ctermbg = none })
@@ -162,30 +163,24 @@ do
 	vim.api.nvim_set_hl(0, "CursorLineNr", { ctermfg = brightwhite, ctermbg = none })
 
 	-- syntax highlights
-	vim.api.nvim_set_hl(0, "Function", { ctermfg = brightblue })
+	vim.api.nvim_set_hl(0, "Function", { ctermfg = default })
 	vim.api.nvim_set_hl(0, "Class", { ctermfg = cyan })
-	vim.api.nvim_set_hl(0, "Identifier", { ctermfg = blue })
-	vim.api.nvim_set_hl(0, "Statement", { ctermfg = blue })
-	vim.api.nvim_set_hl(0, "Constant", { ctermfg = brightgreen })
-
-	vim.api.nvim_set_hl(0, "Comment", { ctermfg = green })
-
+	vim.api.nvim_set_hl(0, "Type", { ctermfg = cyan })
+	vim.api.nvim_set_hl(0, "Identifier", { ctermfg = default })
+	vim.api.nvim_set_hl(0, "Statement", { ctermfg = green })
+	vim.api.nvim_set_hl(0, "Constant", { ctermfg = blue })
+	vim.api.nvim_set_hl(0, "Comment", { ctermfg = brightwhite })
 	vim.api.nvim_set_hl(0, "String", { ctermfg = brightmagenta })
-
 	vim.api.nvim_set_hl(0, "Whitespace", { ctermfg = 8 })
-
-	vim.api.nvim_set_hl(0, "Special", { ctermfg = brightcyan })
-
-	vim.api.nvim_set_hl(0, "PreProc", { ctermfg = brightred })
-
-	vim.api.nvim_set_hl(0, "Todo", { ctermfg = red, ctermbg = black })
+	vim.api.nvim_set_hl(0, "Special", { ctermfg = yellow })
+	vim.api.nvim_set_hl(0, "PreProc", { ctermfg = green })
+	vim.api.nvim_set_hl(0, "Todo", { ctermbg = red, ctermfg = black })
 
 	-- match
-	local match_bg = "gray"
-	local match_fg = black
-	vim.api.nvim_set_hl(0, "MatchParen", { ctermbg = match_bg, ctermfg = match_fg })
-	vim.api.nvim_set_hl(0, "MatchPairs", { ctermbg = match_bg, ctermfg = match_fg })
-	vim.api.nvim_set_hl(0, "matchTag", { ctermbg = match_bg, ctermfg = match_fg })
+	local match_fg = "gray"
+	vim.api.nvim_set_hl(0, "MatchParen", { ctermfg = match_fg })
+	vim.api.nvim_set_hl(0, "MatchPairs", { ctermfg = match_fg })
+	vim.api.nvim_set_hl(0, "matchTag", { ctermfg = match_fg })
 
 	-- tmux
 	vim.cmd("hi link tmuxVariableExpansion Special")
@@ -193,17 +188,18 @@ do
 
 	-- lua
 	vim.cmd("hi link @function.builtin.lua Normal")
+	vim.cmd("hi link @constructor.lua Normal")
 	
 	-- html
-	--vim.cmd("hi link htmlTag Normal")
-	--vim.cmd("hi link htmlTagN Normal")
-	--vim.cmd("hi link htmlTagName Normal")
-	--vim.cmd("hi link htmlArg Normal")
-	--vim.cmd("hi link htmlEndTag Normal")
-	--vim.cmd("hi link htmlNormalTagName Normal")
-	local jinja_color = brightcyan
-	vim.api.nvim_set_hl(0, "jinjaString", { ctermfg = jinja_color })
+	local html_tag_color = brightblue
+	vim.api.nvim_set_hl(0, "htmlTag", { ctermfg = brightgreen })
+	vim.api.nvim_set_hl(0, "htmlTagN", { ctermfg = html_tag_color })
+	vim.api.nvim_set_hl(0, "htmlTagName", { ctermfg = html_tag_color })
+	vim.api.nvim_set_hl(0, "htmlArg", { ctermfg = brightyellow })
+	vim.api.nvim_set_hl(0, "htmlEndTag", { ctermfg = brightred })
+	vim.api.nvim_set_hl(0, "jinjaString", { ctermfg = cyan })
 
+	vim.api.nvim_set_hl(0, "cssTagName", { ctermfg = html_tag_color })
 	vim.cmd("hi link cssVendor Normal")
 	vim.cmd("hi link cssAttrComma Normal")
 	vim.cmd("hi link cssSelectorOp Normal")
@@ -216,6 +212,9 @@ do
 	vim.cmd("hi link javaScript Normal")
 	vim.cmd("hi link javaScriptEmbed Normal")
 	vim.cmd("hi link javaScriptBraces Normal")
+	vim.cmd("hi link javaScriptMember Normal")
+	vim.cmd("hi link javaScriptIdentifier Statement")
+	vim.cmd("hi link javaScriptModifier Statement")
 
 	-- vue
 	local vue_color = brightcyan
@@ -228,9 +227,9 @@ do
 	vim.cmd("hi link VueBrace PreProc")
 
 	-- python
-	--vim.cmd("hi link pythonInclude Statement")
-	--vim.cmd("hi link pythonDecorator Statement")
-	--vim.cmd("hi link pythonDecoratorName Statement")
+	vim.cmd("hi link pythonDecorator Special")
+	vim.cmd("hi link pythonDecoratorName Special")
+	vim.cmd("hi link pythonBuiltin Normal")
 
 	-- c/c++
 	vim.cmd("hi link cCharacter Special")
@@ -240,18 +239,26 @@ do
 	vim.cmd("hi link d2Operator Special")
 	
 	-- markdown
-	vim.api.nvim_set_hl(0, "markdownH1", { ctermfg = brightcyan })
-	vim.api.nvim_set_hl(0, "markdownH2", { ctermfg = brightgreen })
-	vim.api.nvim_set_hl(0, "markdownH3", { ctermfg = cyan })
-	vim.api.nvim_set_hl(0, "markdownH4", { ctermfg = green })
-	vim.api.nvim_set_hl(0, "markdownH1Delimiter", { ctermfg = brightcyan })
-	vim.api.nvim_set_hl(0, "markdownH2Delimiter", { ctermfg = brightgreen })
-	vim.api.nvim_set_hl(0, "markdownH3Delimiter", { ctermfg = cyan })
-	vim.api.nvim_set_hl(0, "markdownH4Delimiter", { ctermfg = green })
+	local h1 = cyan
+	local h2 = blue
+	local h3 = brightcyan
+	local h4 = brightblue
+	vim.api.nvim_set_hl(0, "markdownH1", { ctermfg = h1 })
+	vim.api.nvim_set_hl(0, "markdownH2", { ctermfg = h2 })
+	vim.api.nvim_set_hl(0, "markdownH3", { ctermfg = h3 })
+	vim.api.nvim_set_hl(0, "markdownH4", { ctermfg = h4 })
+	vim.api.nvim_set_hl(0, "markdownH1Delimiter", { ctermfg = h1 })
+	vim.api.nvim_set_hl(0, "markdownH2Delimiter", { ctermfg = h2 })
+	vim.api.nvim_set_hl(0, "markdownH3Delimiter", { ctermfg = h3 })
+	vim.api.nvim_set_hl(0, "markdownH4Delimiter", { ctermfg = h4 })
 	vim.api.nvim_set_hl(0, "markdownListMarker", { ctermfg = default })
 	vim.api.nvim_set_hl(0, "markdownOrderedListMarker", { ctermfg = default })
 	vim.api.nvim_set_hl(0, "markdownCode", { ctermfg = brightyellow })
 	vim.api.nvim_set_hl(0, "markdownCodeBlock", { ctermfg = brightyellow })
+	vim.api.nvim_set_hl(0, "markdownUrl", { ctermfg = brightmagenta })
+
+	-- yaml
+	vim.cmd("hi link yamlBlockMappingKey Constant")
 end
 
 --- environment settings
@@ -361,14 +368,14 @@ vim.keymap.set("", "<leader>f", live_grep)
 -- center window
 local function toggle_window_centering()
 	require("no-neck-pain").setup({
-		width = 120,
+		width = 150,
 	})
 	vim.cmd("NoNeckPain")
 end
 
 local function toggle_presentation_mode()
 	require("no-neck-pain").setup({
-		width = 50,
+		width = 80,
 	})
 	vim.cmd("NoNeckPain")
 end
