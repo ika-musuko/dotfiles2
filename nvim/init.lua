@@ -1,4 +1,4 @@
---- PLUGINs
+--- PLUGINS
 vim.cmd("packadd packer.nvim")
 
 require("packer").startup(function(use)
@@ -227,6 +227,8 @@ do
 	vim.cmd("hi link cssCustomProp Normal")
 
 	vim.cmd("hi link javaScript Normal")
+	vim.api.nvim_set_hl(0, "@function.call.javascript", { ctermfg = brightblue })
+	vim.api.nvim_set_hl(0, "@variable.member.javascript", { ctermfg = brightblue })
 	vim.cmd("hi link javaScriptEmbed Normal")
 	vim.cmd("hi link javaScriptBraces Normal")
 	vim.cmd("hi link javaScriptMember Normal")
