@@ -41,6 +41,7 @@ require("packer").startup(function(use)
 	use("leafOfTree/vim-vue-plugin")
 	use("terrastruct/d2-vim")
 	use("Glench/Vim-Jinja2-Syntax")
+	use("Vimjas/vim-python-pep8-indent")
 end)
 
 --- language indenting (MUST BE NEAR TOP)
@@ -106,7 +107,6 @@ vim.api.nvim_create_autocmd({ "FileType" }, {
 vim.api.nvim_create_autocmd({ "FileType" }, {
 	group = "setIndent",
 	pattern = {
-		"python",
 		"cpp",
 		"c",
 		"java",
@@ -117,6 +117,21 @@ vim.api.nvim_create_autocmd({ "FileType" }, {
 		set_indent({ width = 4 })
 	end,
 })
+
+
+vim.api.nvim_create_autocmd({ "FileType" }, {
+	group = "setIndent",
+	pattern = {
+		"python",
+	},
+	callback = function()
+		set_indent({ width = 4 })
+		vim.g.pyindent_open_paren = vim.opt.shiftwidth
+		vim.bo.equalprg = "black --quiet -"
+	end,
+})
+
+
 
 -- language highlighting
 require("nvim-treesitter.configs").setup({
