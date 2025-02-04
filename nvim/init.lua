@@ -15,7 +15,7 @@ require("packer").startup(function(use)
 
 	use("tpope/vim-abolish") -- case insensitive replace (:%S)
 
-	use("tpope/vim-sleuth") -- try to respect current project's indent settings
+	--use("tpope/vim-sleuth") -- try to respect current project's indent settings
 
 	use("michaeljsmith/vim-indent-object")
 
@@ -41,7 +41,7 @@ require("packer").startup(function(use)
 	use("leafOfTree/vim-vue-plugin")
 	use("terrastruct/d2-vim")
 	use("Glench/Vim-Jinja2-Syntax")
-	use("Vimjas/vim-python-pep8-indent")
+	--use("Vimjas/vim-python-pep8-indent")
 end)
 
 --- language indenting (MUST BE NEAR TOP)
@@ -126,14 +126,13 @@ vim.api.nvim_create_autocmd({ "FileType" }, {
 	},
 	callback = function()
 		set_indent({ width = 4 })
-		vim.g.pyindent_open_paren = vim.opt.shiftwidth
-		vim.bo.equalprg = "black --quiet -"
 	end,
 })
 
 
 
 -- language highlighting
+--[[
 require("nvim-treesitter.configs").setup({
 	highlight = { enable = true },
 	incremental_selection = { enable = true },
@@ -142,7 +141,9 @@ require("nvim-treesitter.configs").setup({
 		"javascript",
 		"lua",
 	},
+	indent = { enable = false },
 })
+]]--
 
 vim.g.vim_svelte_plugin_load_full_syntax = 1
 
@@ -396,10 +397,15 @@ local function live_grep()
 	return require("telescope.builtin").live_grep()
 end
 
+local function mark_opener()
+	return require("telescope.builtin").marks()
+end
+
 vim.keymap.set("", "<leader>p", file_opener)
 vim.keymap.set("", "<leader>P", file_opener_ignore_vcs)
 vim.keymap.set("", "<leader>b", buffer_opener)
 vim.keymap.set("", "<leader>f", live_grep)
+vim.keymap.set("", "<leader>m", mark_opener)
 
 -- center window
 local function toggle_window_centering()
@@ -499,4 +505,4 @@ function show_messages_buffer()
 	vim.cmd("Messages")
 	vim.cmd("wincmd p")
 end
-vim.keymap.set("", "<leader>m", show_messages_buffer)
+vim.keymap.set("", "<leader>M", show_messages_buffer)
