@@ -17,6 +17,8 @@ require("packer").startup(function(use)
 
 	--use("tpope/vim-sleuth") -- try to respect current project's indent settings
 
+	use("tpope/vim-fugitive")
+
 	use("michaeljsmith/vim-indent-object")
 
 	use("LunarVim/bigfile.nvim")
