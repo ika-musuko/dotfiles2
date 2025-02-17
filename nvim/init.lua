@@ -18,6 +18,7 @@ require("packer").startup(function(use)
 	--use("tpope/vim-sleuth") -- try to respect current project's indent settings
 
 	use("tpope/vim-fugitive")
+	use("tpope/vim-rhubarb")
 
 	use("michaeljsmith/vim-indent-object")
 
@@ -134,18 +135,15 @@ vim.api.nvim_create_autocmd({ "FileType" }, {
 
 
 -- language highlighting
---[[
 require("nvim-treesitter.configs").setup({
 	highlight = { enable = true },
 	incremental_selection = { enable = true },
 	textobjects = { enable = true },
+	indent = { enable = true },
 	ensure_installed = {
-		"javascript",
-		"lua",
+		"cpp",
 	},
-	indent = { enable = false },
 })
-]]--
 
 vim.g.vim_svelte_plugin_load_full_syntax = 1
 
@@ -255,6 +253,7 @@ do
 
 	-- vue
 	local vue_color = brightcyan
+	vim.api.nvim_set_hl(0, "vueTag", { ctermfg = vue_color })
 	vim.api.nvim_set_hl(0, "VueQuote", { ctermfg = vue_color })
 	vim.api.nvim_set_hl(0, "VueAttr", { ctermfg = vue_color })
 	vim.api.nvim_set_hl(0, "VueKey", { ctermfg = vue_color })
@@ -306,6 +305,7 @@ vim.opt.clipboard = "unnamedplus"
 
 vim.opt.number = true
 vim.opt.relativenumber = true
+vim.opt.statuscolumn = "%s %l %r"
 
 vim.opt.splitbelow = true
 vim.opt.splitright = true

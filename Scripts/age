@@ -1,0 +1,9 @@
+#!/bin/bash
+BIRTH="1996-07-19"
+
+export TZ="UTC"
+birth_time=$(gdate -d "$BIRTH" +%s)
+now_time=$(date +%s)
+
+result=$(echo "scale=7; ($now_time - $birth_time) / 31556900" | bc -l)
+echo "${result:0:2}.${result:3:4} ${result:7}"
