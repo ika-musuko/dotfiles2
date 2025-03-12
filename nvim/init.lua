@@ -62,7 +62,10 @@ vim.api.nvim_create_autocmd({ "FileType" }, {
 		"css",
 		"html",
 		"javascript",
+		"jsx",
 		"typescript",
+		"typescriptreact",
+		"tsx",
 		"scss",
 		"xml",
 		"xhtml",
@@ -366,7 +369,6 @@ end)
 -- telescope
 require("telescope").setup({
 	defaults = {
-		preview = false,
 		layout_config = {
 			horizontal = {
 				height = 0.8,
@@ -508,3 +510,59 @@ function show_messages_buffer()
 	vim.cmd("wincmd p")
 end
 vim.keymap.set("", "<leader>M", show_messages_buffer)
+
+-- import a snippet from a snippet directory
+do
+	local actions = require("telescope.actions")
+	local action_state = require("telescope.actions.state")
+	local pickers = require("telescope.pickers")
+	local finders = require("telescope.finders")
+	local previewers = require("telescope.previewers")
+	local conf = require("telescope.config").values
+
+	local snippet_dir = vim.fn.expand("~/Code/helpers")
+	local function absolute_path(dir, path)
+		return "/" .. dir .. "/" .. path
+	end
+
+	local function insert_snippet(prompt_bufnr)
+		local selection = action_state.get_selected_entry()
+		actions.close(prompt_bufnr)
+		if selection and selection.value then
+			local snippet_lines = vim.fn.readfile(selection.value)
+			vim.api.nvim_put(snippet_lines, "", true, true)
+		end
+	end
+
+	local function snippet_manager()
+		pickers.new({ cwd = snippet_dir }, {
+			prompt_title = "Snippet Manager",
+			finder = finders.new_oneshot_job(
+				{ "rg", "--files" },
+				{
+					cwd = snippet_dir,
+					entry_maker = function(entry)
+						return {
+							value = absolute_path(snippet_dir, entry),
+							ordinal = entry,
+							display = entry,
+						}
+					end,
+				}
+			),
+			sorter = conf.generic_sorter({}),
+			previewer = previewers.vim_buffer_cat.new({}),
+			layout_strategy = "horizontal",
+			layout_config = {
+				preview_width = 0.5,
+				height = 0.8,
+			},
+			attach_mappings = function(_, map)
+				map("i", "<CR>", insert_snippet)
+				map("n", "<CR>", insert_snippet)
+				return true
+			end,
+		}):find()
+	end
+	vim.keymap.set("", "<leader>n", snippet_manager)
+end
