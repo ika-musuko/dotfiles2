@@ -5,6 +5,7 @@ cpscript() {
 
 cpscript 24-bit-color.sh
 cpscript age
+cpscript always200
 cpscript battery
 cpscript clock-emoji
 cpscript cpu-usage
