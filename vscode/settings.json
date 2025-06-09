@@ -16,9 +16,25 @@
         "input.background": "#1e1e1e",
         "tab.activeBackground": "#1c2523",
         "tab.inactiveBackground": "#1c2523",
-        "terminal.background": "#141714",
+        "terminal.background": "#1c2523",
         "titleBar.activeBackground": "#1e211f",
         "titleBar.inactiveBackground": "#1e211f",
+        "terminal.ansiBlack": "#2d3438",
+        "terminal.ansiRed": "#d9888a",
+        "terminal.ansiGreen": "#a0c688",
+        "terminal.ansiYellow": "#d3c185",
+        "terminal.ansiBlue": "#86b8b1",
+        "terminal.ansiMagenta": "#caa3b0",
+        "terminal.ansiCyan": "#89bb99",
+        "terminal.ansiWhite": "#decfc5",
+        "terminal.ansiBrightBlack": "#47535c",
+        "terminal.ansiBrightRed": "#d99a9b",
+        "terminal.ansiBrightGreen": "#a8c481",
+        "terminal.ansiBrightYellow": "#e0c983",
+        "terminal.ansiBrightBlue": "#7cb8b1",
+        "terminal.ansiBrightMagenta": "#d9afbd",
+        "terminal.ansiBrightCyan": "#83c69a",
+        "terminal.ansiBrightWhite": "#a8a68b"
     },
     "editor.tokenColorCustomizations": {
         "textMateRules": [
@@ -174,4 +190,5 @@
     "accessibility.voice.speechTimeout": 0,
     "git.confirmSync": false,
     "terminal.integrated.persistentSessionScrollback": 1000,
+    "terminal.integrated.fontFamily": "LXGW WenKai Mono, MesloLGS NF, FiraCode Nerd Font, Symbols Nerd Font, Apple Color Emoji, monospace"
 }
