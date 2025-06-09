@@ -1,0 +1,177 @@
+{
+    "files.associations": {
+        "*.jinja": "html"
+    },
+    "workbench.colorCustomizations": {
+        "activityBar.background": "#1c2523",
+        "editor.foreground": "#e7dcc4",
+        "editor.background": "#1c2523",
+        "editorCursor.foreground": "#e7dcc4",
+        "dropdown.background": "#1e211f",
+        "editorGroupHeader.tabsBackground": "#1c2523",
+        "editorGutter.background": "#151c1b",
+        "menu.background": "#1e211f",
+        "sideBar.background": "#1e211f",
+        "statusBar.background": "#1e211f",
+        "input.background": "#1e1e1e",
+        "tab.activeBackground": "#1c2523",
+        "tab.inactiveBackground": "#1c2523",
+        "terminal.background": "#141714",
+        "titleBar.activeBackground": "#1e211f",
+        "titleBar.inactiveBackground": "#1e211f",
+    },
+    "editor.tokenColorCustomizations": {
+        "textMateRules": [
+            {
+                "name": "Comments",
+                "scope": [
+                    "comment",
+                    "punctuation.definition.comment"
+                ],
+                "settings": {
+                    "foreground": "#a8a68b"
+                }
+            },
+            {
+                "name": "Strings, Regular Expressions",
+                "scope": [
+                    "string",
+                    "punctuation.definition.string",
+                    "string.regexp"
+                ],
+                "settings": {
+                    "foreground": "#d9afbd"
+                }
+            },
+            {
+                "name": "Keywords, Storage Types (const, let, class keyword), Modifiers",
+                "scope": [
+                    "keyword",
+                    "storage.type",
+                    "storage.modifier"
+                ],
+                "settings": {
+                    "foreground": "#a0c688"
+                }
+            },
+            {
+                "name": "Functions, Methods (declarations and calls)",
+                "scope": [
+                    "entity.name.function",
+                    "support.function",
+                    "meta.function-call entity.name.function",
+                    "entity.name.method"
+                ],
+                "settings": {
+                    "foreground": "#7cb8b1"
+                }
+            },
+            {
+                "name": "Class names, Type names (interfaces, enums, etc.)",
+                "scope": [
+                    "entity.name.type",
+                    "entity.name.class",
+                    "support.type",
+                    "support.class"
+                ],
+                "settings": {
+                    "foreground": "#89bb99"
+                }
+            },
+            {
+                "name": "Numbers, Booleans, Language Constants (true, false, null)",
+                "scope": [
+                    "constant.numeric",
+                    "constant.language",
+                    "constant.boolean"
+                ],
+                "settings": {
+                    "foreground": "#86b8b1"
+                }
+            },
+            {
+                "name": "HTML/XML Tags, Attributes, CSS Selectors & Properties",
+                "scope": [
+                    "entity.name.tag", // e.g., <div>
+                    "entity.other.attribute-name", // e.g., class="" in HTML
+                    "support.type.property-name.css", // e.g., color:
+                    "meta.selector.css entity.name.tag" // e.g., body in CSS
+                ],
+                "settings": {
+                    "foreground": "#d3c185"
+                } // Yellow from Neovim 'Special'
+            },
+            {
+                "name": "Variables, Parameters, Object Keys, Punctuation (Default Foreground)",
+                "scope": [
+                    "variable",
+                    "variable.parameter",
+                    "meta.object-literal.key", // Object keys in JS/JSON
+                    "punctuation" // Commas, colons, braces etc. not specifically colored
+                ],
+                "settings": {
+                    "foreground": "#e7dcc4"
+                }
+            },
+            {
+                "name": "HTML Tag Name and Brackets (Blue)",
+                "scope": [
+                    "entity.name.tag.html",
+                    "meta.tag.sgml.name.html",
+                    "punctuation.definition.tag.begin.html",
+                    "punctuation.definition.tag.end.html"
+                ],
+                "settings": {
+                    "foreground": "#7cb8b1"
+                }
+            }
+        ]
+    },
+    "editor.fontFamily": "LXGW WenKai Mono",
+    "C_Cpp.default.compilerPath": "/opt/homebrew/opt/llvm/bin/clang++",
+    "editor.fontSize": 18,
+    "editor.fontWeight": 700,
+    "editor.glyphMargin": false,
+    "editor.lineHeight": 26,
+    "makefile.configureOnOpen": true,
+    "debug.console.fontSize": 16,
+    "scm.inputFontSize": 18,
+    "terminal.integrated.fontSize": 16,
+    "chat.editor.fontSize": 16,
+    "markdown.preview.fontSize": 16,
+    "debug.console.lineHeight": 16,
+    "hexeditor.columnWidth": 4,
+    "hexeditor.showDecodedText": false,
+    "hexeditor.defaultEndianness": "little",
+    "hexeditor.inspectorType": "aside",
+    "editor.minimap.enabled": false,
+    "cmake.pinnedCommands": [
+        "workbench.action.tasks.configureTaskRunner",
+        "workbench.action.tasks.runTask"
+    ],
+    "extensions.ignoreRecommendations": true,
+    "workbench.editor.showTabs": "single",
+    "editor.renderLineHighlight": "gutter",
+    "github.copilot.enable": {
+        "*": false,
+    },
+    "editor.inlineSuggest.enabled": false,
+    "editor.suggest.showSnippets": false,
+    "editor.quickSuggestions": {
+        "other": "off"
+    },
+    "editor.autoClosingQuotes": "never",
+    "html.autoCreateQuotes": false,
+    "editor.autoSurround": "never",
+    "editor.autoClosingBrackets": "never",
+    "editor.suggestOnTriggerCharacters": false,
+    "workbench.colorTheme": "Minimal Colors",
+    "terminal.integrated.tabs.location": "left",
+    "terminal.integrated.tabs.enabled": false,
+    "workbench.sideBar.location": "right",
+    "workbench.activityBar.location": "hidden",
+    "html.autoClosingTags": false,
+    "accessibility.voice.speechTimeout": 0,
+    "git.confirmSync": false,
+    "terminal.integrated.persistentSessionScrollback": 1000,
+}

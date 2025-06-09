@@ -43,8 +43,6 @@ require("packer").startup(function(use)
 	use("leafOfTree/vim-svelte-plugin")
 	use("leafOfTree/vim-vue-plugin")
 	use("terrastruct/d2-vim")
-	use("Glench/Vim-Jinja2-Syntax")
-	--use("Vimjas/vim-python-pep8-indent")
 end)
 
 --- language indenting (MUST BE NEAR TOP)
@@ -118,6 +116,7 @@ vim.api.nvim_create_autocmd({ "FileType" }, {
 		"java",
 		"groovy",
 		"json",
+		"cucumber",
 	},
 	callback = function()
 		set_indent({ width = 4 })
@@ -146,6 +145,13 @@ require("nvim-treesitter.configs").setup({
 	ensure_installed = {
 		"cpp",
 	},
+})
+
+vim.api.nvim_create_autocmd({"BufRead", "BufNewFile"}, {
+  pattern = {"*.jinja", "*.jinja2"},
+  callback = function()
+    vim.bo.filetype = "html"
+  end,
 })
 
 vim.g.vim_svelte_plugin_load_full_syntax = 1
