@@ -190,5 +190,7 @@
     "accessibility.voice.speechTimeout": 0,
     "git.confirmSync": false,
     "terminal.integrated.persistentSessionScrollback": 1000,
-    "terminal.integrated.fontFamily": "LXGW WenKai Mono, MesloLGS NF, FiraCode Nerd Font, Symbols Nerd Font, Apple Color Emoji, monospace"
+    "terminal.integrated.fontFamily": "LXGW WenKai Mono, MesloLGS NF, FiraCode Nerd Font, Symbols Nerd Font, Apple Color Emoji, monospace",
+    "editor.accessibilitySupport": "off",
+    "explorer.confirmDelete": false
 }
