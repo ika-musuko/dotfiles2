@@ -9,14 +9,17 @@ cpscript always200
 cpscript battery
 cpscript clock-emoji
 cpscript cpu-usage
+cpscript cpu-usage-linux
 cpscript disk-usage
 cpscript memory-usage
 cpscript next-event
+cpscript osoneline
 cpscript sunrise
 cpscript sunrise-server
 cpscript testnerd
 cpscript tmux-sessions
 cpscript upt
+cpscript upt-linux
 
 cp -r ~/.config/nvim/init.lua nvim
 cp -r ~/.config/kitty/kitty.conf kitty

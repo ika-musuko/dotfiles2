@@ -1,0 +1,2 @@
+#!/bin/bash
+[[ "$OSTYPE" == "darwin"* ]] && echo "🍎$(sw_vers | awk -F': ' 'NR==1{printf $2" "}/ProductVersion/{print $2}')" || echo "🐧$(awk -F= '/^NAME=|^VERSION=/{gsub(/"/,""); printf $2" "}' /etc/os-release)"
