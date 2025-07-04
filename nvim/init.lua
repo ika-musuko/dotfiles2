@@ -488,7 +488,7 @@ end
 vim.api.nvim_create_user_command("TrimWhitespace", trim_whitespace, {})
 vim.keymap.set("", "<leader>s", ":TrimWhitespace<CR>")
 
--- rename file
+-- file management shortcuts
 local function copy_file(new_name)
 	vim.cmd("f " .. new_name)
 	vim.cmd("w")
