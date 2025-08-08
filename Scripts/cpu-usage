@@ -1,6 +1,13 @@
 #!/bin/bash
-load=$(sysctl -n vm.loadavg | awk '{print $2}')
-total=$(sysctl -n hw.ncpu)
-percent=$(echo "scale=0; $load * 100 / $total" | bc)
+if [[ "$OSTYPE" == "darwin" ]]; then
+	load=$(sysctl -n vm.loadavg | awk '{print $2}')
+	total=$(sysctl -n hw.ncpu)
+	percent=$(echo "scale=0; $load * 100 / $total" | bc)
+else
+	load=$(awk '{print $2}' /proc/loadavg)
+	total=$(nproc)
+	percent=$(echo "$load * 100 / $total" | bc)
+fi
+
 echo "${percent}% ($load)"
 

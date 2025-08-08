@@ -9,7 +9,6 @@ cpscript always200
 cpscript battery
 cpscript clock-emoji
 cpscript cpu-usage
-cpscript cpu-usage-linux
 cpscript disk-usage
 cpscript memory-usage
 cpscript next-event
@@ -20,10 +19,9 @@ cpscript testnerd
 cpscript tmux-sessions
 cpscript tofi
 cpscript upt
-cpscript upt-linux
 
 cp -r ~/.config/nvim/init.lua nvim
 cp -r ~/.config/kitty/kitty.conf kitty
-cp -r ~/.config/hypr/ hypr/
+cp -r ~/.config/hypr .
 cp ~/.tmux.conf .
 cp ~/Library/Application\ Support/Code/User/settings.json vscode
