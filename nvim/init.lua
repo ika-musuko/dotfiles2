@@ -43,6 +43,8 @@ require("packer").startup(function(use)
 	use("leafOfTree/vim-svelte-plugin")
 	use("leafOfTree/vim-vue-plugin")
 	use("terrastruct/d2-vim")
+
+	use("zorab47/procfile.vim")
 end)
 
 --- language indenting (MUST BE NEAR TOP)
@@ -488,7 +490,7 @@ end
 vim.api.nvim_create_user_command("TrimWhitespace", trim_whitespace, {})
 vim.keymap.set("", "<leader>s", ":TrimWhitespace<CR>")
 
--- rename file
+-- file management shortcuts
 local function copy_file(new_name)
 	vim.cmd("f " .. new_name)
 	vim.cmd("w")
@@ -508,6 +510,28 @@ vim.api.nvim_create_user_command("Mv", function(opts)
 	local new_name = opts.fargs[1]
 	copy_file(current_dir .. "/" .. new_name)
 	vim.cmd("!rm " .. old_name)
+end, { nargs = 1 })
+
+vim.api.nvim_create_user_command("Rm", function(opts)
+	local current_file = vim.fn.expand("%")
+	local current_dir = vim.fn.expand("%:p:h")
+	local to_delete = current_dir .. "/" .. current_file
+
+	local answer = vim.fn.input("Really delete " .. to_delete .. "? (type \"yes\" to delete) ")
+	if answer ~= "yes" then
+		vim.cmd("!echo")
+		return
+	end
+
+	vim.cmd("bd")
+	vim.cmd("!rm " .. to_delete)
+	vim.cmd("echo \"Deleted " .. to_delete .. "\"")
+end, { nargs = 0 })
+
+vim.api.nvim_create_user_command("Cp", function(opts)
+	local current_dir = vim.fn.expand("%:p:h")
+	local new_name = opts.fargs[1]
+	copy_file(current_dir .. "/" .. new_name)
 end, { nargs = 1 })
 
 -- show :messages in a new buffer and switch back to current window

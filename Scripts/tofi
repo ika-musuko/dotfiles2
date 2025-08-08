@@ -1,0 +1,70 @@
+#!/usr/bin/env python3
+
+import os
+import sys
+import subprocess
+from configparser import ConfigParser
+
+DESKTOP_DIRS = [
+    os.path.expanduser("~/.local/share/applications"),
+    "/usr/share/applications",
+    "/usr/local/share/applications",
+]
+
+def find_desktop_files():
+    files = []
+    for directory in DESKTOP_DIRS:
+        if os.path.isdir(directory):
+            for name in os.listdir(directory):
+                if name.endswith(".desktop"):
+                    files.append(os.path.join(directory, name))
+    return files
+
+def parse_desktop_file(path):
+    cp = ConfigParser(interpolation=None)
+    cp.read(path, encoding='utf-8')
+    if 'Desktop Entry' not in cp: return None
+    entry = cp['Desktop Entry']
+    if entry.get('NoDisplay', 'false').lower() == 'true': return None
+    name = entry.get('Name')
+    exec_cmd = entry.get('Exec')
+    if not name or not exec_cmd: return None
+    # Remove argument placeholders (like %U, %F)
+    exec_cmd = ' '.join(part for part in exec_cmd.split() if not part.startswith('%'))
+    return {'name': name, 'exec': exec_cmd}
+
+def list_programs():
+    programs = []
+    for path in find_desktop_files():
+        item = parse_desktop_file(path)
+        if item: programs.append(item)
+    # Sort by name
+    programs.sort(key=lambda x: x['name'].lower())
+    return programs
+
+def main():
+    if len(sys.argv) < 2 or sys.argv[1] not in ['list', 'open']:
+        print("Usage: tofi list | tofi open \"Program Name\"")
+        sys.exit(1)
+
+    cmd = sys.argv[1]
+
+    if cmd == 'list':
+        for prog in list_programs():
+            print(prog['name'])
+        return
+
+    if cmd == 'open':
+        if len(sys.argv) < 3:
+            print("Usage: tofi open \"Program Name\"")
+            sys.exit(1)
+        name = sys.argv[2]
+        for prog in list_programs():
+            if prog['name'].lower() == name.lower():
+                subprocess.Popen(prog['exec'], shell=True)
+                return
+        print(f"Program \"{name}\" not found.")
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main()
