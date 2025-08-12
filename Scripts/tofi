@@ -1,70 +1,401 @@
 #!/usr/bin/env python3
+"""
+ tofi: a terminal version of wofi/rofi (drun) in pure Python 3 (no third‑party packages)
 
+ Commands:
+   tofi list
+       Prints items you would see in wofi's drun menu and the link used to open them.
+       Format: "<app_name> <desktop_file_path>" or for actions
+               "<action_display_name> <desktop_file_path> <ACTION>"
+
+   tofi open "Google Chrome"
+       Opens exactly like selecting that menu item in wofi. Matches by *exact* visible name.
+
+ Notes / Limitations (pure-Python version):
+   * We implement most of what Gio/GDesktopAppInfo gives wofi, manually parsing .desktop files.
+   * We handle Hidden, NoDisplay, TryExec, OnlyShowIn, NotShowIn similarly to g_app_info_should_show.
+   * We respect PrefersNonDefaultGPU=true by exporting DRI_PRIME=1 before launch.
+   * We implement standard Exec field codes: %f %F %u %U (stripped), %i (ignored), %c (name), %k (desktop path), %%.
+   * DBusActivatable=true *without* an Exec command cannot be launched without external tools (e.g. gio/gtk-launch).
+     We warn and skip such entries to keep zero Python dependencies.
+"""
+from __future__ import annotations
+
+import argparse
+import locale
 import os
-import sys
+import shlex
 import subprocess
-from configparser import ConfigParser
+import sys
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Dict, Iterable, List, Optional, Tuple
 
-DESKTOP_DIRS = [
-    os.path.expanduser("~/.local/share/applications"),
-    "/usr/share/applications",
-    "/usr/local/share/applications",
-]
 
-def find_desktop_files():
-    files = []
-    for directory in DESKTOP_DIRS:
-        if os.path.isdir(directory):
-            for name in os.listdir(directory):
-                if name.endswith(".desktop"):
-                    files.append(os.path.join(directory, name))
-    return files
+# --------------------------- XDG locations ---------------------------
 
-def parse_desktop_file(path):
-    cp = ConfigParser(interpolation=None)
-    cp.read(path, encoding='utf-8')
-    if 'Desktop Entry' not in cp: return None
-    entry = cp['Desktop Entry']
-    if entry.get('NoDisplay', 'false').lower() == 'true': return None
-    name = entry.get('Name')
-    exec_cmd = entry.get('Exec')
-    if not name or not exec_cmd: return None
-    # Remove argument placeholders (like %U, %F)
-    exec_cmd = ' '.join(part for part in exec_cmd.split() if not part.startswith('%'))
-    return {'name': name, 'exec': exec_cmd}
+def get_data_home() -> Path:
+    wofi_data_dir = os.environ.get("WOFI_DATA_DIR")
+    if wofi_data_dir:
+        return Path(wofi_data_dir)
+    xdg = os.environ.get("XDG_DATA_HOME")
+    return Path(xdg) if xdg else Path.home() / ".local" / "share"
 
-def list_programs():
-    programs = []
-    for path in find_desktop_files():
-        item = parse_desktop_file(path)
-        if item: programs.append(item)
-    # Sort by name
-    programs.sort(key=lambda x: x['name'].lower())
-    return programs
 
-def main():
-    if len(sys.argv) < 2 or sys.argv[1] not in ['list', 'open']:
-        print("Usage: tofi list | tofi open \"Program Name\"")
-        sys.exit(1)
+def get_data_dirs() -> List[Path]:
+    xdg_dirs = os.environ.get("XDG_DATA_DIRS") or "/usr/local/share:/usr/share"
+    return [Path(p) for p in xdg_dirs.split(":") if p]
 
-    cmd = sys.argv[1]
 
-    if cmd == 'list':
-        for prog in list_programs():
-            print(prog['name'])
-        return
+def applications_dirs() -> List[Path]:
+    dirs = [get_data_home() / "applications"]
+    dirs.extend(p / "applications" for p in get_data_dirs())
+    return dirs
 
-    if cmd == 'open':
-        if len(sys.argv) < 3:
-            print("Usage: tofi open \"Program Name\"")
-            sys.exit(1)
-        name = sys.argv[2]
-        for prog in list_programs():
-            if prog['name'].lower() == name.lower():
-                subprocess.Popen(prog['exec'], shell=True)
-                return
-        print(f"Program \"{name}\" not found.")
-        sys.exit(1)
+
+# --------------------------- Desktop parsing ---------------------------
+
+@dataclass
+class DesktopAction:
+    key: str  # action key (section suffix)
+    name: str  # display name
+    exec: Optional[str]  # Exec line, may be None
+
+
+@dataclass
+class DesktopEntry:
+    path: Path
+    id: str  # desktop id (like org.gnome.Nautilus.desktop) or filename
+    name: str
+    try_exec: Optional[str]
+    hidden: bool
+    no_display: bool
+    only_show_in: List[str]
+    not_show_in: List[str]
+    prefers_non_default_gpu: bool
+    terminal: bool
+    dbus_activatable: bool
+    exec: Optional[str]
+    actions: List[DesktopAction]
+
+
+def _read_file_lines(p: Path) -> List[str]:
+    try:
+        return p.read_text(encoding="utf-8", errors="replace").splitlines()
+    except Exception:
+        return []
+
+
+def _current_desktops() -> List[str]:
+    # XDG_CURRENT_DESKTOP may be colon-separated list
+    val = os.environ.get("XDG_CURRENT_DESKTOP", "").strip()
+    return [s for s in val.split(":") if s] if val else []
+
+
+def _locale_variants() -> List[str]:
+    # Generate a small search list for localized keys, e.g., en_US, en
+    lang, enc = locale.getdefaultlocale() if hasattr(locale, "getdefaultlocale") else (None, None)
+    out: List[str] = []
+    if lang:
+        out.append(lang)
+        if "_" in lang:
+            out.append(lang.split("_")[0])
+    return out
+
+
+def _kv(line: str) -> Optional[Tuple[str, str]]:
+    if "=" not in line:
+        return None
+    k, v = line.split("=", 1)
+    return k.strip(), v.strip()
+
+
+def parse_desktop_file(p: Path) -> Optional[DesktopEntry]:
+    lines = _read_file_lines(p)
+    if not lines:
+        return None
+
+    section = None
+    main: Dict[str, str] = {}
+    actions_map: Dict[str, Dict[str, str]] = {}
+
+    for raw in lines:
+        line = raw.strip()
+        if not line or line.startswith("#"):
+            continue
+        if line.startswith("[") and line.endswith("]"):
+            section = line[1:-1]
+            continue
+        kv = _kv(line)
+        if not kv or section is None:
+            continue
+        key, val = kv
+        if section == "Desktop Entry":
+            # Keep last occurrence; spec says last wins
+            main[key] = val
+        elif section.startswith("Desktop Action "):
+            act_key = section[len("Desktop Action "):]
+            actions_map.setdefault(act_key, {})[key] = val
+
+    # Only accept proper desktop entries
+    if main.get("Type", "Application") not in ("Application",):
+        return None
+
+    # Choose localized Name
+    name = main.get("Name") or ""
+    if not name:
+        variants = _locale_variants()
+        for v in variants:
+            alt = main.get(f"Name[{v}]")
+            if alt:
+                name = alt
+                break
+    if not name:
+        # Fallback to filename without extension
+        name = p.stem
+
+    # Determine id
+    # Try to reconstruct id like data_dir/.../applications/<id>
+    id_val = p.name
+    # Try to flatten subdir path into id with dashes (like wofi get_id)
+    try:
+        # take path after "/applications/"
+        s = str(p)
+        idx = s.rfind("/applications/")
+        if idx != -1:
+            name_part = s[idx + len("/applications/"):]
+            id_val = name_part.replace("/", "-")
+    except Exception:
+        pass
+
+    # Collect booleans/strings
+    hidden = main.get("Hidden", "false").lower() == "true"
+    no_display = main.get("NoDisplay", "false").lower() == "true"
+    try_exec = main.get("TryExec")
+    only_show_in = [s for s in (main.get("OnlyShowIn", "").split(";")) if s]
+    not_show_in = [s for s in (main.get("NotShowIn", "").split(";")) if s]
+    prefers_gpu = main.get("PrefersNonDefaultGPU", "false").lower() == "true"
+    terminal = main.get("Terminal", "false").lower() == "true"
+    dbus_activatable = main.get("DBusActivatable", "false").lower() == "true"
+    exec_cmd = main.get("Exec")
+
+    actions: List[DesktopAction] = []
+    for k, amap in actions_map.items():
+        a_name = amap.get("Name") or k
+        a_exec = amap.get("Exec")
+        actions.append(DesktopAction(key=k, name=a_name, exec=a_exec))
+
+    return DesktopEntry(
+        path=p,
+        id=id_val,
+        name=name,
+        try_exec=try_exec,
+        hidden=hidden,
+        no_display=no_display,
+        only_show_in=only_show_in,
+        not_show_in=not_show_in,
+        prefers_non_default_gpu=prefers_gpu,
+        terminal=terminal,
+        dbus_activatable=dbus_activatable,
+        exec=exec_cmd,
+        actions=actions,
+    )
+
+
+def should_show(entry: DesktopEntry) -> bool:
+    if entry.hidden or entry.no_display:
+        return False
+    if entry.try_exec:
+        # If TryExec is present and not found in PATH, skip
+        if shutil_which(entry.try_exec) is None:
+            return False
+    desktops = _current_desktops()
+    if entry.only_show_in:
+        if not any(d in desktops for d in entry.only_show_in):
+            return False
+    if entry.not_show_in:
+        if any(d in desktops for d in entry.not_show_in):
+            return False
+    # If DBusActivatable and no Exec, we cannot launch it w/o external tools; still list? wofi would list it.
+    # We will list, but warn on launch.
+    return True
+
+
+def shutil_which(cmd: str) -> Optional[str]:
+    # Tiny re-implementation to avoid importing shutil (still stdlib, but keep minimal)
+    # Actually shutil is stdlib; but let's avoid extra import for clarity. However, importing shutil is fine.
+    import os as _os
+    if _os.path.isabs(cmd) and _os.access(cmd, _os.X_OK):
+        return cmd
+    paths = _os.environ.get("PATH", "").split(":")
+    exts = [""]
+    for d in paths:
+        f = _os.path.join(d, cmd)
+        if _os.access(f, _os.X_OK) and _os.path.isfile(f):
+            return f
+    return None
+
+
+# --------------------------- Entry collection ---------------------------
+
+@dataclass
+class MenuItem:
+    name: str           # Visible name (for matching)
+    link: str           # "<desktop_path>" or "<desktop_path> <ACTION>"
+    entry: DesktopEntry # backing entry
+    action: Optional[DesktopAction]  # None for primary
+
+
+def iter_desktop_files() -> Iterable[Path]:
+    for base in applications_dirs():
+        if not base.exists():
+            continue
+        for root, _dirs, files in os.walk(base):
+            for f in files:
+                if f.endswith(".desktop"):
+                    yield Path(root) / f
+
+
+def collect_entries() -> List[MenuItem]:
+    out: List[MenuItem] = []
+    for p in iter_desktop_files():
+        entry = parse_desktop_file(p)
+        if not entry:
+            continue
+        if not should_show(entry):
+            continue
+        # Primary item
+        out.append(MenuItem(name=entry.name, link=str(entry.path), entry=entry, action=None))
+        # Actions
+        for act in entry.actions:
+            # Wofi shows action display name; link encodes path and action token
+            out.append(MenuItem(name=act.name, link=f"{entry.path} {act.key}", entry=entry, action=act))
+    return out
+
+
+# --------------------------- Exec expansion ---------------------------
+
+FIELD_CODES_FILE = {"%f", "%F", "%u", "%U"}  # no files provided → strip
+
+
+def expand_exec(exec_str: str, desktop_path: Path, app_name: str) -> List[str]:
+    """Expand .desktop Exec field codes into argv list.
+    Implements: %% %f %F %u %U %i %c %k (minimal semantics).
+    - We strip file/url placeholders since we don't pass targets from wofi/CLI here.
+    - %i (icon) is ignored; some launchers replace with --icon <icon>, we skip.
+    - %c -> app name; %k -> absolute desktop file path.
+    """
+    # Replace literal %% first
+    s = exec_str.replace("%%", "\x00PERCENT\x00")
+    # Remove file/url codes (and any adjoining quotes remain)
+    for code in FIELD_CODES_FILE:
+        s = s.replace(code, "")
+    s = s.replace("%i", "")
+    s = s.replace("%c", shlex.quote(app_name))
+    s = s.replace("%k", shlex.quote(str(desktop_path)))
+    s = s.replace("\x00PERCENT\x00", "%")
+
+    # Now split into argv respecting quotes
+    argv = shlex.split(s)
+    return argv
+
+
+# --------------------------- Launch ---------------------------
+
+def launch_entry(entry: DesktopEntry, action: Optional[DesktopAction]) -> int:
+    env = os.environ.copy()
+    if entry.prefers_non_default_gpu:
+        env["DRI_PRIME"] = "1"
+
+    # Decide which Exec to use
+    exec_line: Optional[str] = None
+    if action is None:
+        exec_line = entry.exec
+        if entry.dbus_activatable and not exec_line:
+            print(
+                f"tofi: '{entry.name}' is DBusActivatable but has no Exec; cannot launch without gio/gtk-launch.",
+                file=sys.stderr,
+            )
+            return 1
+    else:
+        exec_line = action.exec
+        if not exec_line:
+            print(f"tofi: action '{action.key}' for '{entry.name}' has no Exec.", file=sys.stderr)
+            return 1
+
+    if not exec_line:
+        print(f"tofi: '{entry.name}' has no Exec command.", file=sys.stderr)
+        return 1
+
+    argv = expand_exec(exec_line, entry.path, entry.name)
+
+    # If the first argv element is not absolute, rely on PATH
+    try:
+        # Run detached from tofi (like a launcher). Don't wait.
+        subprocess.Popen(argv, env=env)
+        return 0
+    except FileNotFoundError:
+        print(f"tofi: command not found: {argv[0]}", file=sys.stderr)
+        return 1
+    except Exception as e:
+        print(f"tofi: launch failed: {e}", file=sys.stderr)
+        return 1
+
+
+# --------------------------- CLI ---------------------------
+
+def cmd_list() -> int:
+    items = sorted(collect_entries(), key=lambda it: it.name.lower())
+    for it in items:
+        print(f"{it.name} {it.link}")
+    return 0
+
+
+def cmd_open(name: str) -> int:
+    items = collect_entries()
+    primaries = [it for it in items if it.action is None and it.name == name]
+    secondaries = [it for it in items if it.action is not None and it.name == name]
+
+    chosen: Optional[MenuItem] = None
+    if primaries:
+        chosen = primaries[0]
+        if len(primaries) > 1:
+            print(f"Note: multiple apps named '{name}' found; launching the first one.", file=sys.stderr)
+    elif secondaries:
+        chosen = secondaries[0]
+    else:
+        print(f"tofi: no menu item exactly named '{name}'", file=sys.stderr)
+        # Suggest close matches
+        lower = name.lower()
+        cand = [it.name for it in items if lower in it.name.lower()]
+        if cand:
+            print("Did you mean:", file=sys.stderr)
+            for s in sorted(set(cand))[:10]:
+                print(f"  {s}", file=sys.stderr)
+        return 1
+
+    return launch_entry(chosen.entry, chosen.action)
+
+
+def main(argv: List[str]) -> int:
+    parser = argparse.ArgumentParser(prog="tofi", description="tofi: terminal wofi/rofi (drun) in pure Python")
+    sub = parser.add_subparsers(dest="cmd")
+
+    p_open = sub.add_parser("open", help='Open an item exactly as wofi would. Usage: tofi open "Google Chrome"')
+    p_open.add_argument("name")
+
+    sub.add_parser("list", help="List items wofi would show, with their link")
+
+    args = parser.parse_args(argv)
+
+    if args.cmd == "list":
+        return cmd_list()
+    if args.cmd == "open":
+        return cmd_open(args.name)
+
+    parser.print_help()
+    return 2
+
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main(sys.argv[1:]))
