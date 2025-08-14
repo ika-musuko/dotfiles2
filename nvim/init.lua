@@ -150,10 +150,10 @@ require("nvim-treesitter.configs").setup({
 })
 
 vim.api.nvim_create_autocmd({"BufRead", "BufNewFile"}, {
-  pattern = {"*.jinja", "*.jinja2"},
-  callback = function()
-    vim.bo.filetype = "html"
-  end,
+	pattern = {"*.jinja", "*.jinja2"},
+	callback = function()
+		vim.bo.filetype = "html"
+	end,
 })
 
 vim.g.vim_svelte_plugin_load_full_syntax = 1
@@ -411,8 +411,10 @@ end
 
 local function live_grep_ignore_vcs()
 	return require("telescope.builtin").live_grep({
-			additional_args = { "-u" },
-		})
+		additional_args = {
+			"-u"
+		},
+	})
 end
 
 local function mark_opener()
