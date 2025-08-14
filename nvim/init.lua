@@ -409,6 +409,12 @@ local function live_grep()
 	return require("telescope.builtin").live_grep()
 end
 
+local function live_grep_ignore_vcs()
+	return require("telescope.builtin").live_grep({
+			additional_args = { "-u" },
+		})
+end
+
 local function mark_opener()
 	return require("telescope.builtin").marks()
 end
@@ -417,6 +423,7 @@ vim.keymap.set("", "<leader>p", file_opener)
 vim.keymap.set("", "<leader>P", file_opener_ignore_vcs)
 vim.keymap.set("", "<leader>b", buffer_opener)
 vim.keymap.set("", "<leader>f", live_grep)
+vim.keymap.set("", "<leader>F", live_grep_ignore_vcs)
 vim.keymap.set("", "<leader>m", mark_opener)
 
 -- center window
