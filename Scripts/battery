@@ -1,5 +1,20 @@
 #!/bin/bash
-command=$(pmset -g batt | tail -1 | cut -f 2 | cut -d' ' -f 1 -f 2 | sed 's/;//g')
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    command=$(pmset -g batt | tail -1 | cut -f 2 | cut -d' ' -f 1,2 | sed 's/;//g')
+else
+  # Linux: use the first ACPI line that DOES NOT say "rate information unavailable"
+  line=$(acpi -b | grep -v "rate information unavailable" | head -n1)
+  # Fallback if all lines contain "rate information unavailable"
+  if [ -z "$line" ]; then
+    line=$(acpi -b | head -n1)
+  fi
+
+  # Extract percent and status
+  percent=$(echo "$line" | awk -F', ' '{print $2}' | tr -d '%')
+  status=$(echo "$line"  | awk -F': ' '{print $2}' | cut -d',' -f1 | tr '[:upper:]' '[:lower:]')
+
+  command="$percent $status"
+fi
 
 battery_level=$(echo $command | cut -d' ' -f 1 | sed 's/%//g')
 status=$(echo $command | cut -d' ' -f 2)

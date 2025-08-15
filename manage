@@ -1,0 +1,54 @@
+#!/bin/sh
+set -e
+
+MODE="$1"
+
+if [ -z "$MODE" ]; then
+    echo "Usage: $0 push|pull"
+    exit 1
+fi
+
+copy_file() {
+    SRC="$1"
+    DEST="$2"
+    if [ "$MODE" = "pull" ]; then
+        cp -r "$SRC" "$DEST"
+    elif [ "$MODE" = "push" ]; then
+        cp -r "$DEST" "$SRC"
+    else
+        echo "Invalid mode: $MODE"
+        exit 1
+    fi
+}
+
+# Scripts
+for s in \
+    24-bit-color.sh \
+    age \
+    battery \
+    clock-emoji \
+    cpu-usage \
+    disk-usage \
+    memory-usage \
+    osoneline \
+    testnerd \
+    tmux-sessions \
+    tofi \
+    upt
+do
+    copy_file ~/Scripts/$s Scripts/$s
+done
+
+# Desktop env
+copy_file ~/.config/hypr hypr
+copy_file ~/.config/waybar waybar
+
+# Terminal
+copy_file ~/.config/kitty kitty
+copy_file ~/.tmux.conf .tmux.conf
+
+# Neovim
+copy_file ~/.config/nvim/init.lua nvim/init.lua
+
+# VSCode
+copy_file ~/Library/Application\ Support/Code/User/settings.json vscode/settings.json
