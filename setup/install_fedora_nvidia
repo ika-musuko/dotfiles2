@@ -1,0 +1,7 @@
+#!/bin/sh
+
+sudo dnf install -y \
+	cuda \
+	nvidia-container-runtime \
+	nvidia-container-toolkit \
+	;

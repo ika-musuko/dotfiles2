@@ -1,0 +1,39 @@
+#!/bin/sh
+
+# package install
+sudo dnf install -y \
+	btop \
+	containerd.io \
+	docker-buildx-plugin \
+	docker-ce \
+	docker-ce-cli \
+	docker-compose-plugin \
+	dnf-plugins-core \
+	fcitx5 \
+	fcitx5-autostart \
+	fcitx5-configtool \
+	fcitx5-gtk \
+	fcitx5-gtk2 \
+	fcitx5-gtk3 \
+	fcitx5-gtk4 \
+	fcitx5-mozc \
+	fcitx5-qt \
+	ffmpeg \
+	fzf \
+	gh \
+	gimp \
+	htop \
+	hyprshot \
+	input-remapper \
+	jq \
+	nvim \
+	qdirstat \
+	waybar \
+	wine \
+	winetricks \
+	wl-clipboard \
+	zsh \
+	;
+
+# copy once files
+cp -n setup/.zshrc ~/.zshrc
