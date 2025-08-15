@@ -1,0 +1,42 @@
+#!/bin/sh
+
+function session() {
+  local session_name=$1
+  if ! tmux has-session -t "$session_name" 2>/dev/null; then
+    tmux new-session -d -s "$session_name"
+    echo "Created new tmux session: $session_name"
+  fi
+}
+
+function window() {
+  local session_name=$1
+  local window_number=$2
+  local shell_command=$3
+  local window_name=$4
+
+  # Check if the session exists
+  if ! tmux has-session -t "$session_name" 2>/dev/null; then
+    echo "Error: Session '$session_name' does not exist." >&2
+    return 1
+  fi
+
+  # Check if a window at the target index already exists
+  local existing_window_id
+  existing_window_id=$(tmux list-windows -t "$session_name" -F '#{window_index}' 2>/dev/null | grep -x "$window_number")
+
+  if [[ -z "$existing_window_id" ]]; then
+    # Create a new window at the specified number
+    tmux new-window -d -t "$session_name:$window_number" -c "~"
+  else
+    # The window already exists, just use it
+    tmux select-window -t "$session_name:$window_number"
+  fi
+
+  # Execute the command in the newly created or selected window
+  tmux send-keys -t "$session_name:$window_number" "$shell_command" C-m
+
+  # If a window name is provided, rename the window
+  if [[ -n "$window_name" ]]; then
+    tmux rename-window -t "$session_name:$window_number" "$window_name"
+  fi
+}

@@ -12,9 +12,9 @@ copy_file() {
     SRC="$1"
     DEST="$2"
     if [ "$MODE" = "pull" ]; then
-        cp -r "$SRC" "$DEST"
+        cp "$SRC" "$DEST"
     elif [ "$MODE" = "push" ]; then
-        cp -r "$DEST" "$SRC"
+        cp "$DEST" "$SRC"
     else
         echo "Invalid mode: $MODE"
         exit 1
@@ -32,6 +32,8 @@ for s in \
     memory-usage \
     osoneline \
     testnerd \
+    tmux-api \
+    tmux-init \
     tmux-sessions \
     tofi \
     upt
@@ -41,14 +43,12 @@ done
 
 # Desktop env
 copy_file ~/.config/hypr/hyprland.conf hypr/hyprland.conf
-copy_file ~/.config/waybar waybar
+copy_file ~/.config/waybar/config.jsonc waybar/config.jsonc
+copy_file ~/.config/waybar/style.css waybar/style.css
 
 # Terminal
-copy_file ~/.config/kitty kitty
+copy_file ~/.config/kitty/kitty.conf kitty
 copy_file ~/.tmux.conf .tmux.conf
 
 # Neovim
 copy_file ~/.config/nvim/init.lua nvim/init.lua
-
-# VSCode
-copy_file ~/Library/Application\ Support/Code/User/settings.json vscode/settings.json
