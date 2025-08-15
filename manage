@@ -40,7 +40,7 @@ do
 done
 
 # Desktop env
-copy_file ~/.config/hypr hypr
+copy_file ~/.config/hypr/hyprland.conf hypr/hyprland.conf
 copy_file ~/.config/waybar waybar
 
 # Terminal
