@@ -20,8 +20,16 @@ cpscript tmux-sessions
 cpscript tofi
 cpscript upt
 
-cp -r ~/.config/nvim/init.lua nvim
-cp -r ~/.config/kitty/kitty.conf kitty
+# desktop env
 cp -r ~/.config/hypr .
+cp -r ~/.config/waybar .
+
+# terminal
+cp -r ~/.config/kitty/kitty.conf kitty
 cp ~/.tmux.conf .
+
+# neovim
+cp -r ~/.config/nvim/init.lua nvim
+
+# vscode
 cp ~/Library/Application\ Support/Code/User/settings.json vscode
