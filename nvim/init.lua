@@ -411,6 +411,7 @@ end
 
 local function save_buffers()
 	vim.cmd("mksession .sesh.vim")
+	print("Session saved to .sesh.vim. Open with `nvim -S .sesh.vim`")
 end
 
 local function live_grep()
@@ -514,13 +515,16 @@ local function copy_file(new_name)
 	vim.cmd("w")
 end
 
-vim.api.nvim_create_user_command("Edit", function(opts)
+local function edit_here(opts)
 	local current_dir = vim.fn.expand("%:p:h")
 	local name = opts.fargs[1]
 
 	local new_file = current_dir .. "/" .. name
 	vim.cmd("e " .. new_file)
-end, { nargs = 1 })
+end
+
+vim.api.nvim_create_user_command("Edit", edit_here, { nargs = 1 })
+vim.api.nvim_create_user_command("E", edit_here, { nargs = 1 })
 
 vim.api.nvim_create_user_command("Mv", function(opts)
 	local old_name = vim.fn.expand("%")
