@@ -32,6 +32,10 @@ require("packer").startup(function(use)
 		requires = { "nvim-lua/plenary.nvim", "nvim-telescope/telescope-fzf-native.nvim" },
 	})
 
+	use("MagicDuck/grug-far.nvim")
+
+	use("j-morano/buffer_manager.nvim")
+
 	use("nvim-tree/nvim-web-devicons")
 
 	use("Shougo/context_filetype.vim") -- single file multiple lang support
@@ -402,7 +406,11 @@ local function file_opener_ignore_vcs()
 end
 
 local function buffer_opener()
-	return require("telescope.builtin").buffers()
+	return require("buffer_manager.ui").toggle_quick_menu()
+end
+
+local function save_buffers()
+	vim.cmd("mksession .sesh.vim")
 end
 
 local function live_grep()
@@ -424,6 +432,7 @@ end
 vim.keymap.set("", "<leader>p", file_opener)
 vim.keymap.set("", "<leader>P", file_opener_ignore_vcs)
 vim.keymap.set("", "<leader>b", buffer_opener)
+vim.keymap.set("", "<leader>B", save_buffers)
 vim.keymap.set("", "<leader>f", live_grep)
 vim.keymap.set("", "<leader>F", live_grep_ignore_vcs)
 vim.keymap.set("", "<leader>m", mark_opener)

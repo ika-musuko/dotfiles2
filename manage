@@ -42,12 +42,17 @@ do
 done
 
 # Desktop env
-copy_file ~/.config/hypr/hyprland.conf hypr/hyprland.conf
-copy_file ~/.config/waybar/config.jsonc waybar/config.jsonc
-copy_file ~/.config/waybar/style.css waybar/style.css
+case "$OSTYPE" in
+	"darwin"*)
+		;;
+	*)
+		copy_file ~/.config/hypr/hyprland.conf hypr/hyprland.conf
+		copy_file ~/.config/waybar/config.jsonc waybar/config.jsonc
+		copy_file ~/.config/waybar/style.css waybar/style.css
+esac
 
 # Terminal
-copy_file ~/.config/kitty/kitty.conf kitty
+copy_file ~/.config/kitty/kitty.conf kitty/kitty.conf
 copy_file ~/.tmux.conf .tmux.conf
 
 # Neovim
