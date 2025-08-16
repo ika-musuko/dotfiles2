@@ -1,5 +1,5 @@
 #!/bin/bash
-if [[ "$OSTYPE" == "darwin" ]]; then
+if [[ "$OSTYPE" == "darwin"* ]]; then
 	boot_time=$(sysctl -n kern.boottime | awk '{print $4}' | tr -d ',')
 	current_time=$(date +%s)
 	uptime_seconds=$((current_time - boot_time))
