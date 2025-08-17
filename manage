@@ -50,6 +50,9 @@ case "$OSTYPE" in
 		copy_file ~/.config/hypr/hyprland.conf hypr/hyprland.conf
 		copy_file ~/.config/waybar/config.jsonc waybar/config.jsonc
 		copy_file ~/.config/waybar/style.css waybar/style.css
+
+		# fcitx
+		copy_file ~/.config/fcitx5/config fcitx5/config
 esac
 
 # Terminal
