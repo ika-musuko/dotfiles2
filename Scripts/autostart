@@ -1,0 +1,6 @@
+#!/bin/bash
+killall waybar
+killall fcitx5
+
+fcitx5 -d
+waybar & disown

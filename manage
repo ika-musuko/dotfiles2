@@ -25,6 +25,7 @@ copy_file() {
 for s in \
     24-bit-color.sh \
     age \
+    autostart \
     battery \
     clock-emoji \
     cpu-usage \
