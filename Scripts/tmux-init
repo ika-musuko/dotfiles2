@@ -11,9 +11,10 @@ window "2" "2" "nvim ~/.tmux.conf" "tmux"
 window "2" "3" "nvim ~/.config/" "nvim"
 window "2" "4" "nvim ~/.zshrc" "zshrc"
 window "2" "5" "cd ~/Scripts && nvim" "Scripts"
-window "2" "6" "cd ~/.config/hypr && nvim hyprland.conf" "hypr"
+window "2" "6" "cd ~/.config/i3 && nvim config" "wm"
 window "2" "8" "cd ~/Code/dotfiles2" "dotfiles"
 
-[ -f "./tmux-init-user" ] && ./tmux-init-user
+user_file="$HOME/Scripts/tmux-init-user"
+[ -f $user_file ] && $user_file
 
 tmux attach

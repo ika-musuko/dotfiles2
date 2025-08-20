@@ -47,6 +47,11 @@ case "$OSTYPE" in
 	"darwin"*)
 		;;
 	*)
+		# i3
+		copy_file ~/.config/i3/config i3/config
+		copy_file ~/.config/polybar/config.ini polybar/config.ini
+
+		# hyprland
 		copy_file ~/.config/hypr/hyprland.conf hypr/hyprland.conf
 		copy_file ~/.config/waybar/config.jsonc waybar/config.jsonc
 		copy_file ~/.config/waybar/style.css waybar/style.css
