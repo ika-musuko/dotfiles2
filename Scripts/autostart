@@ -2,7 +2,9 @@
 killall fcitx5
 killall polybar
 
-xrandr --output eDP-1 --scale 1x1 --pos 0x1080 --primary --output HDMI-1-0 --mode 1920x1080 --scale 1x1 --pos 540x0
+xrandr \
+	--output eDP-1    --mode 2560x1440 --scale 1x1 --pos 0x1080 --dpi 144 --primary \
+	--output HDMI-1-0 --mode 1920x1080 --scale 1x1 --pos 0x0
 setxkbmap -option caps:numlock
 fcitx5 -d
 polybar & disown

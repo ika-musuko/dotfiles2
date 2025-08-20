@@ -1,6 +1,10 @@
 # Set mod key
 set $mod Mod4
 
+# settings
+focus_follows_mouse no
+mouse_warping none
+
 # Terminal, file manager, and menu
 set $terminal kitty
 set $fileManager dolphin
@@ -42,7 +46,6 @@ set $ws7 "7"
 set $ws8 "8"
 set $ws9 "9"
 set $ws10 "10"
-
 bindsym $mod+1 workspace $ws1
 bindsym $mod+2 workspace $ws2
 bindsym $mod+3 workspace $ws3
