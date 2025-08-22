@@ -1,0 +1,4 @@
+export GTK_THEME=Adwaita-dark
+exec --nostartup-id waybar
+exec --nostartup-id fcitx5
+

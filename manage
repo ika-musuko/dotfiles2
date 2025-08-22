@@ -47,14 +47,18 @@ case "$OSTYPE" in
 	"darwin"*)
 		;;
 	*)
+		# x
+		copy_file ~/.xinitrc .xinitrc
+		copy_file ~/.xprofile .xprofile
+
 		# i3
 		copy_file ~/.config/i3/config i3/config
 		copy_file ~/.config/polybar/config.ini polybar/config.ini
 
-		# hyprland
-		copy_file ~/.config/hypr/hyprland.conf hypr/hyprland.conf
-		copy_file ~/.config/waybar/config.jsonc waybar/config.jsonc
-		copy_file ~/.config/waybar/style.css waybar/style.css
+		# desktop app theming
+		copy_file ~/.gtkrc-2.0 .gtkrc-2.0
+		copy_file ~/.config/gtk-3.0/settings.ini gtk-3.0/settings.ini
+		copy_file ~/.config/gtk-4.0/settings.ini gtk-4.0/settings.ini
 
 		# fcitx
 		copy_file ~/.config/fcitx5/config fcitx5/config
