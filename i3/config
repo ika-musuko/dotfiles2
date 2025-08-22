@@ -7,7 +7,7 @@ mouse_warping none
 
 # Terminal, file manager, and menu
 set $terminal kitty
-set $fileManager dolphin
+set $fileManager thunar
 set $menu i3-dmenu-desktop
 
 # Autostart applications

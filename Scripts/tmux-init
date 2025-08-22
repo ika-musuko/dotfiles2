@@ -3,7 +3,8 @@
 source "$HOME/Scripts/tmux-api"
 
 session "1_bench"
-window "1" "1" "fastfetch"
+window "1" "1" "btop"
+window "1" "2" "fastfetch"
 
 session "2_config"
 window "2" "1" "cd ~/.config/kitty && nvim kitty.conf" "kitty"
