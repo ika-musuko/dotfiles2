@@ -50,6 +50,7 @@ case "$OSTYPE" in
 		# x
 		copy_file ~/.xinitrc .xinitrc
 		copy_file ~/.xprofile .xprofile
+		copy_file ~/.Xresources .Xresources
 
 		# i3
 		copy_file ~/.config/i3/config i3/config

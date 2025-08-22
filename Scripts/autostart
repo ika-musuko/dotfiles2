@@ -1,10 +1,19 @@
 #!/bin/bash
+
+# kill
 killall fcitx5
 killall polybar
 
-xrandr \
-	--output eDP-1    --mode 2560x1440 --scale 1x1 --pos 0x1080 --dpi 144 --primary \
-	--output HDMI-1-0 --mode 1920x1080 --scale 1x1 --pos 0x0
+# monitors
+MONITOR_SETUP="$HOME/.screenlayout/apply.sh"
+[ -f $MONITOR_SETUP ] && $MONITOR_SETUP
+
+# input setup
 setxkbmap -option caps:numlock
+
+# startup apps that should be also refreshed on wm refresh
+# you may need to also add them to the kill section to avoid duplicates
+#
+# (put one time execution apps in ~/.xinitrc)
 fcitx5 -d
 polybar & disown

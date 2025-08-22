@@ -12,6 +12,7 @@ set $menu i3-dmenu-desktop
 
 # Autostart applications
 exec_always --no-startup-id $HOME/Scripts/autostart
+exec --no-startup-id blueman-applet
 
 # Keybindings
 bindsym $mod+q kill

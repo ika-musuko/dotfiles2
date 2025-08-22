@@ -3,15 +3,14 @@
 source "$HOME/Scripts/tmux-api"
 
 session "1_bench"
-window "1" "1" "btop"
+window "1" "1" "fastfetch"
 
 session "2_config"
 window "2" "1" "cd ~/.config/kitty && nvim kitty.conf" "kitty"
 window "2" "2" "nvim ~/.tmux.conf" "tmux"
 window "2" "3" "nvim ~/.config/" "nvim"
 window "2" "4" "nvim ~/.zshrc" "zshrc"
-window "2" "5" "cd ~/Scripts && nvim" "Scripts"
-window "2" "6" "cd ~/.config/i3 && nvim config" "wm"
+window "2" "6" "nvim -O ~/.config/i3/config ~/Scripts/autostart" "wm"
 window "2" "8" "cd ~/Code/dotfiles2" "dotfiles"
 
 user_file="$HOME/Scripts/tmux-init-user"
