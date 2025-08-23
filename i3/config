@@ -1,4 +1,4 @@
-# Set mod key
+# sET MOD key
 set $mod Mod4
 
 # settings
@@ -15,20 +15,22 @@ exec_always --no-startup-id $HOME/Scripts/autostart
 exec --no-startup-id blueman-applet
 
 # Keybindings
+bindsym $mod+Tab workspace back_and_forth
+
 bindsym $mod+q kill
+bindsym $mod+Shift+q exit
+bindsym $mod+w workspace back_and_forth
 bindsym $mod+e exec $fileManager
 bindsym $mod+r restart
 bindsym $mod+t exec $terminal
-bindsym $mod+space exec $menu
-bindsym $mod+Shift+q exit
 bindsym $mod+o floating toggle
 
-# Screenshot
 bindsym $mod+s exec "flameshot gui"
 
-# Firefox shortcut
 bindsym $mod+b exec ~/Scripts/tofi open "Firefox"
 bindsym $mod+slash exec ~/Scripts/autostart
+
+bindsym $mod+space exec $menu
 
 # Move focus with arrow keys
 bindsym $mod+Left focus left
