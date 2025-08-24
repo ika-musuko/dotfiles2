@@ -2,6 +2,7 @@
 
 # package install
 sudo dnf install -y \
+	acpi \
 	btop \
 	containerd.io \
 	docker-buildx-plugin \
@@ -19,19 +20,16 @@ sudo dnf install -y \
 	fcitx5-mozc \
 	fcitx5-qt \
 	ffmpeg \
+	flameshot \
 	fzf \
 	gh \
 	gimp \
 	htop \
-	hyprshot \
-	input-remapper \
 	jq \
 	nvim \
+	polybar \
 	qdirstat \
-	waybar \
-	wine \
-	winetricks \
-	wl-clipboard \
+	xclip \
 	zsh \
 	;
 

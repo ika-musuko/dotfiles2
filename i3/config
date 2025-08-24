@@ -26,17 +26,23 @@ bindsym $mod+t exec $terminal
 bindsym $mod+o floating toggle
 
 bindsym $mod+s exec "flameshot gui"
+set $left h
+set $down j
+set $up k
+set $right l
+bindsym $mod+$left focus left
+bindsym $mod+$down focus down
+bindsym $mod+$up focus up
+bindsym $mod+$right focus right
+bindsym $mod+Shift+$left move left
+bindsym $mod+Shift+$down move down
+bindsym $mod+Shift+$up move up
+bindsym $mod+Shift+$right move right
 
 bindsym $mod+b exec ~/Scripts/tofi open "Firefox"
 bindsym $mod+slash exec ~/Scripts/autostart
 
 bindsym $mod+space exec $menu
-
-# Move focus with arrow keys
-bindsym $mod+Left focus left
-bindsym $mod+Down focus down
-bindsym $mod+Up focus up
-bindsym $mod+Right focus right
 
 # Workspaces
 set $ws1 "1"
