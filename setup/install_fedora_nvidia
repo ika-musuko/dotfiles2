@@ -1,7 +1,1 @@
-#!/bin/sh
-
-sudo dnf install -y \
-	cuda \
-	nvidia-container-runtime \
-	nvidia-container-toolkit \
-	;
+https://forum.level1techs.com/t/cuda-12-9-on-fedora-42-guide-including-getting-cuda-samples-running/230769

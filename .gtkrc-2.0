@@ -2,8 +2,8 @@
 # Any customization should be done in ~/.gtkrc-2.0.mine instead.
 
 include "/home/sen/.gtkrc-2.0.mine"
-gtk-theme-name="Flat-Remix-GTK-Blue-Dark"
-gtk-icon-theme-name="hicolor"
+gtk-theme-name="Raleigh"
+gtk-icon-theme-name="HighContrast"
 gtk-font-name="Sans 10"
 gtk-cursor-theme-name="Adwaita"
 gtk-cursor-theme-size=0
@@ -15,4 +15,4 @@ gtk-enable-event-sounds=1
 gtk-enable-input-feedback-sounds=1
 gtk-xft-antialias=1
 gtk-xft-hinting=1
-gtk-xft-hintstyle="hintfull"
+gtk-xft-hintstyle="hintmedium"

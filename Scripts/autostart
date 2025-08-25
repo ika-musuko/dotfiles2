@@ -15,5 +15,6 @@ setxkbmap -option caps:numlock
 # you may need to also add them to the kill section to avoid duplicates
 #
 # (put one time execution apps in ~/.xinitrc)
+nm-applet & disown
 fcitx5 -d
 polybar & disown

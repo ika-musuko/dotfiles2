@@ -13,6 +13,7 @@ set $menu i3-dmenu-desktop
 # Autostart applications
 exec_always --no-startup-id $HOME/Scripts/autostart
 exec --no-startup-id blueman-applet
+exec --no-startup-id nm-applet
 
 # Keybindings
 bindsym $mod+Tab workspace back_and_forth

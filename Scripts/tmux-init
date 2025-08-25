@@ -11,7 +11,7 @@ window "2" "1" "cd ~/.config/kitty && nvim kitty.conf" "kitty"
 window "2" "2" "nvim ~/.tmux.conf" "tmux"
 window "2" "3" "nvim ~/.config/" "nvim"
 window "2" "4" "nvim ~/.zshrc" "zshrc"
-window "2" "6" "nvim -O ~/.config/i3/config ~/Scripts/autostart" "wm"
+window "2" "6" "nvim ~/.config/i3/config ~/Scripts/autostart ~/.config/polybar/config.ini ~/Scripts/tmux-init ~/Scripts/tmux-init-user" "wm"
 window "2" "8" "cd ~/Code/dotfiles2" "dotfiles"
 
 user_file="$HOME/Scripts/tmux-init-user"
