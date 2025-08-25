@@ -37,7 +37,8 @@ for s in \
     tmux-init \
     tmux-sessions \
     tofi \
-    upt
+    upt \
+    uvfreeze
 do
     copy_file ~/Scripts/$s Scripts/$s
 done

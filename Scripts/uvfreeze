@@ -1,0 +1,131 @@
+#!/usr/bin/env python3
+
+import argparse
+import re
+import sys
+from pathlib import Path
+import tomllib
+
+NAME_CHARS = r"[A-Za-z0-9._-]+"
+
+def pep503_normalize(name: str) -> str:
+    # PEP 503 normalization: lowercase, collapse -_. to single hyphen
+    return re.sub(r"[-_.]+", "-", name).lower()
+
+def extract_dist_name(spec: str) -> str:
+    # PEP 508-ish: take the leading dist name before extras/markers/specifiers
+    m = re.match(rf"^\s*({NAME_CHARS})", spec)
+    if not m:
+        raise ValueError(f"Cannot extract package name from: {spec!r}")
+    return m.group(1)
+
+def load_explicit_dependencies(pyproject_path: Path) -> list[str]:
+    data = tomllib.loads(pyproject_path.read_text(encoding="utf-8"))
+    try:
+        deps = data["project"]["dependencies"]
+    except KeyError as e:
+        raise SystemExit("No [project.dependencies] found in pyproject.toml") from e
+    names = [extract_dist_name(d) for d in deps]
+    return names
+
+def load_lock_versions(uvlock_path: Path) -> dict[str, str]:
+    # uv.lock is TOML with [[package]] tables containing name/version
+    content = uvlock_path.read_text(encoding="utf-8")
+    doc = tomllib.loads(content)
+    pkgs = doc.get("package", [])
+    mapping: dict[str, str] = {}
+    for p in pkgs:
+        name = pep503_normalize(p["name"])
+        ver = p["version"]
+        mapping[name] = ver
+    return mapping
+
+def freeze_specs(explicit_names: list[str], lockmap: dict[str, str]) -> list[str]:
+    frozen = []
+    missing = []
+    for raw in explicit_names:
+        norm = pep503_normalize(raw)
+        ver = lockmap.get(norm)
+        if ver:
+            frozen.append(f"{raw}=={ver}")
+        else:
+            missing.append(raw)
+    if missing:
+        print(
+            "Warning: not found in uv.lock → " + ", ".join(missing),
+            file=sys.stderr,
+        )
+    return frozen
+
+def rewrite_pyproject_dependencies(src_text: str, frozen_specs: list[str]) -> str:
+    """
+    Replace the array assigned to project.dependencies with pinned strings.
+    Tries to preserve indentation and surrounding formatting.
+    """
+    # Regex to find the dependencies array block.
+    # Uses a tempered dot to stop at the matching closing bracket line.
+    # Assumes the closing bracket is on its own line (as is typical).
+    pattern = re.compile(
+        r"""(?mx)
+        ^(?P<indent>\s*)dependencies\s*=\s*\[
+        (?P<body>.*?)
+        ^(?P=indent)\]
+        """,
+        re.DOTALL,
+    )
+
+    def replacement(m: re.Match) -> str:
+        indent = m.group("indent")
+        inner_indent = indent + "  "
+        lines = [f'{inner_indent}"{spec}",' for spec in frozen_specs]
+        body = "\n".join(lines) + ("\n" if lines else "")
+        return f"{indent}dependencies = [\n{body}{indent}]"
+
+    # Limit search to the [project] table region to avoid false positives
+    # (best-effort scoping)
+    proj_pat = re.compile(r"(?ms)^\[project\](.*?)(?=^\[| \Z)")
+    def scoped_rewrite(text: str) -> str:
+        mproj = proj_pat.search(text)
+        if not mproj:
+            raise SystemExit("No [project] table found in pyproject.toml text.")
+        start, end = mproj.span()
+        segment = text[start:end]
+        new_segment, n = pattern.subn(replacement, segment, count=1)
+        if n == 0:
+            raise SystemExit("Could not locate a dependencies = [ ... ] array to rewrite.")
+        return text[:start] + new_segment + text[end:]
+
+    return scoped_rewrite(src_text)
+
+def main():
+    ap = argparse.ArgumentParser(description="Freeze explicit pyproject deps to versions in uv.lock")
+    ap.add_argument("pyproject", nargs="?", default="pyproject.toml")
+    ap.add_argument("uvlock", nargs="?", default="uv.lock")
+    ap.add_argument("--write", action="store_true",
+                    help="Write pyproject.toml with pinned [project.dependencies]")
+    args = ap.parse_args()
+
+    py = Path(args.pyproject)
+    lock = Path(args.uvlock)
+
+    if not py.exists() or not lock.exists():
+        ap.error(f"Files not found: pyproject={py} uv.lock={lock}")
+
+    explicit = load_explicit_dependencies(py)
+    lockmap = load_lock_versions(lock)
+    frozen = freeze_specs(explicit, lockmap)
+
+    # 1) Print the frozen specs (one per line)
+    for line in frozen:
+        print(line)
+
+    # 2) Optionally write a pinned pyproject
+    if args.write:
+        src = py.read_text(encoding="utf-8")
+        dst_text = rewrite_pyproject_dependencies(src, frozen)
+        out = py.with_name("pyproject.toml")
+        out.write_text(dst_text, encoding="utf-8")
+        print(f"\nWrote pinned file: {out}", file=sys.stderr)
+
+if __name__ == "__main__":
+    main()
