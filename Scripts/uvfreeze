@@ -57,14 +57,12 @@ def freeze_specs(explicit_names: list[str], lockmap: dict[str, str]) -> list[str
         )
     return frozen
 
-def rewrite_pyproject_dependencies(src_text: str, frozen_specs: list[str]) -> str:
+def rewrite_pyproject_dependencies(src_text: str, items: list[str]) -> str:
     """
-    Replace the array assigned to project.dependencies with pinned strings.
+    Replace the array assigned to project.dependencies with given items (strings).
     Tries to preserve indentation and surrounding formatting.
+    Assumes the closing bracket is on its own line (typical layout).
     """
-    # Regex to find the dependencies array block.
-    # Uses a tempered dot to stop at the matching closing bracket line.
-    # Assumes the closing bracket is on its own line (as is typical).
     pattern = re.compile(
         r"""(?mx)
         ^(?P<indent>\s*)dependencies\s*=\s*\[
@@ -77,55 +75,74 @@ def rewrite_pyproject_dependencies(src_text: str, frozen_specs: list[str]) -> st
     def replacement(m: re.Match) -> str:
         indent = m.group("indent")
         inner_indent = indent + "  "
-        lines = [f'{inner_indent}"{spec}",' for spec in frozen_specs]
+        lines = [f'{inner_indent}"{spec}",' for spec in items]
         body = "\n".join(lines) + ("\n" if lines else "")
         return f"{indent}dependencies = [\n{body}{indent}]"
 
-    # Limit search to the [project] table region to avoid false positives
-    # (best-effort scoping)
-    proj_pat = re.compile(r"(?ms)^\[project\](.*?)(?=^\[| \Z)")
-    def scoped_rewrite(text: str) -> str:
-        mproj = proj_pat.search(text)
-        if not mproj:
-            raise SystemExit("No [project] table found in pyproject.toml text.")
-        start, end = mproj.span()
-        segment = text[start:end]
-        new_segment, n = pattern.subn(replacement, segment, count=1)
-        if n == 0:
-            raise SystemExit("Could not locate a dependencies = [ ... ] array to rewrite.")
-        return text[:start] + new_segment + text[end:]
-
-    return scoped_rewrite(src_text)
+    # Scope to [project] table to avoid false positives
+    proj_pat = re.compile(r"(?ms)^\[project\](.*?)(?=^\[|\Z)")
+    mproj = proj_pat.search(src_text)
+    if not mproj:
+        raise SystemExit("No [project] table found in pyproject.toml text.")
+    start, end = mproj.span()
+    segment = src_text[start:end]
+    new_segment, n = pattern.subn(replacement, segment, count=1)
+    if n == 0:
+        raise SystemExit("Could not locate a 'dependencies = [ ... ]' array to rewrite.")
+    return src_text[:start] + new_segment + src_text[end:]
 
 def main():
-    ap = argparse.ArgumentParser(description="Freeze explicit pyproject deps to versions in uv.lock")
+    ap = argparse.ArgumentParser(
+        description="Freeze or strip explicit [project.dependencies] using uv.lock"
+    )
     ap.add_argument("pyproject", nargs="?", default="pyproject.toml")
     ap.add_argument("uvlock", nargs="?", default="uv.lock")
-    ap.add_argument("--write", action="store_true",
-                    help="Write pyproject.toml with pinned [project.dependencies]")
+    ap.add_argument(
+        "--mode",
+        choices=["freeze", "strip"],
+        default="freeze",
+        help="freeze: write name==version from uv.lock; strip: keep only bare package names",
+    )
+    ap.add_argument(
+        "--write",
+        action="store_true",
+        help="Modify pyproject.toml in place (rewrite [project.dependencies])",
+    )
     args = ap.parse_args()
 
     py = Path(args.pyproject)
     lock = Path(args.uvlock)
 
-    if not py.exists() or not lock.exists():
-        ap.error(f"Files not found: pyproject={py} uv.lock={lock}")
+    if not py.exists():
+        ap.error(f"File not found: {py}")
+    if args.mode == "freeze" and not lock.exists():
+        ap.error(f"uv.lock not found: {lock}")
 
-    explicit = load_explicit_dependencies(py)
-    lockmap = load_lock_versions(lock)
-    frozen = freeze_specs(explicit, lockmap)
+    # read explicit names
+    explicit_names = load_explicit_dependencies(py)
 
-    # 1) Print the frozen specs (one per line)
-    for line in frozen:
-        print(line)
+    if args.mode == "freeze":
+        lockmap = load_lock_versions(lock)
+        result_items = freeze_specs(explicit_names, lockmap)   # e.g., ["pkg==1.2.3", ...]
+        # Print result lines
+        for line in result_items:
+            print(line)
+        if args.write:
+            src = py.read_text(encoding="utf-8")
+            dst = rewrite_pyproject_dependencies(src, result_items)
+            py.write_text(dst, encoding="utf-8")
+            print(f"\nWrote pins into: {py}", file=sys.stderr)
 
-    # 2) Optionally write a pinned pyproject
-    if args.write:
-        src = py.read_text(encoding="utf-8")
-        dst_text = rewrite_pyproject_dependencies(src, frozen)
-        out = py.with_name("pyproject.toml")
-        out.write_text(dst_text, encoding="utf-8")
-        print(f"\nWrote pinned file: {out}", file=sys.stderr)
+    else:  # strip
+        # Just the names
+        for name in explicit_names:
+            print(name)
+        if args.write:
+            src = py.read_text(encoding="utf-8")
+            # In strip mode, rewrite deps array with only bare names
+            dst = rewrite_pyproject_dependencies(src, explicit_names)
+            py.write_text(dst, encoding="utf-8")
+            print(f"\nStripped versions in: {py}", file=sys.stderr)
 
 if __name__ == "__main__":
     main()
