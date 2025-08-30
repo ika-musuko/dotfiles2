@@ -210,6 +210,8 @@ do
 	vim.api.nvim_set_hl(0, "LineNr", { ctermfg = brightblack, ctermbg = none })
 	vim.api.nvim_set_hl(0, "CursorLineNr", { ctermfg = brightwhite, ctermbg = none })
 
+	vim.api.nvim_set_hl(0, "Folded", { ctermfg = brightblack, bold = true })
+
 	-- syntax highlights
 	vim.api.nvim_set_hl(0, "Function", { ctermfg = default })
 	vim.api.nvim_set_hl(0, "Class", { ctermfg = cyan })
@@ -336,6 +338,37 @@ vim.opt.undofile = true
 
 vim.opt.cursorline = true
 vim.opt.cursorlineopt = "number"
+
+vim.g.markdown_folding = 1
+
+-- autosave and load folds
+-- Save & load folds/cursor automatically
+vim.opt.viewoptions = { "folds", "cursor" }
+vim.opt.viewdir = vim.fn.stdpath("state") .. "/view"
+
+-- Ensure the view directory exists
+vim.fn.mkdir(vim.opt.viewdir:get(), "p")
+
+local group = vim.api.nvim_create_augroup("auto_view", { clear = true })
+
+vim.api.nvim_create_autocmd("BufWinLeave", {
+  group = group,
+  callback = function()
+    if vim.fn.bufname("%") ~= "" then
+      vim.cmd("silent! mkview")
+    end
+  end,
+})
+
+vim.api.nvim_create_autocmd("BufWinEnter", {
+  group = group,
+  callback = function()
+    if vim.fn.bufname("%") ~= "" then
+      vim.cmd("silent! loadview")
+    end
+  end,
+})
+
 
 --- native keybindings
 -- config keybindings and commands

@@ -55,6 +55,8 @@ case "$OSTYPE" in
 
 		# i3
 		copy_file ~/.config/i3/config i3/config
+
+		# polybar
 		copy_file ~/.config/polybar/config.ini polybar/config.ini
 
 		# desktop app theming
