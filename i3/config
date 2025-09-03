@@ -6,7 +6,7 @@ focus_follows_mouse no
 mouse_warping none
 
 # Terminal, file manager, and menu
-set $terminal kitty
+set $terminal "~/Scripts/tofi open kitty"
 set $fileManager thunar
 set $menu i3-dmenu-desktop
 
