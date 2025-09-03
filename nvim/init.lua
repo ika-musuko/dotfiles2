@@ -348,29 +348,53 @@ do
 
 	vim.keymap.set("n", "<M-/>", reload_config)
 end
+--
+-- terminal normal mode
+local TERM_ESCAPE = "<C-\\><C-n>"
+vim.keymap.set("t", "<M-Esc>", TERM_ESCAPE)
 
--- window navigation
+-- window navigation and management
 vim.keymap.set("", "<C-h>", "<C-w>h")
 vim.keymap.set("", "<C-j>", "<C-w>j")
 vim.keymap.set("", "<C-k>", "<C-w>k")
 vim.keymap.set("", "<C-l>", "<C-w>l")
-
+vim.keymap.set("", "<M-h>", "<C-w>h")
+vim.keymap.set("", "<M-j>", "<C-w>j")
+vim.keymap.set("", "<M-k>", "<C-w>k")
+vim.keymap.set("", "<M-l>", "<C-w>l")
 vim.keymap.set("i", "<C-h>", "<Esc><C-w>h")
 vim.keymap.set("i", "<C-j>", "<Esc><C-w>j")
 vim.keymap.set("i", "<C-k>", "<Esc><C-w>k")
 vim.keymap.set("i", "<C-l>", "<Esc><C-w>l")
+vim.keymap.set("i", "<M-h>", "<Esc><C-w>h")
+vim.keymap.set("i", "<M-j>", "<Esc><C-w>j")
+vim.keymap.set("i", "<M-k>", "<Esc><C-w>k")
+vim.keymap.set("i", "<M-l>", "<Esc><C-w>l")
+vim.keymap.set("t", "<C-h>", TERM_ESCAPE .. "<C-w>h")
+vim.keymap.set("t", "<C-j>", TERM_ESCAPE .. "<C-w>j")
+vim.keymap.set("t", "<C-k>", TERM_ESCAPE .. "<C-w>k")
+vim.keymap.set("t", "<C-l>", TERM_ESCAPE .. "<C-w>l")
+vim.keymap.set("t", "<M-h>", TERM_ESCAPE .. "<C-w>h")
+vim.keymap.set("t", "<M-j>", TERM_ESCAPE .. "<C-w>j")
+vim.keymap.set("t", "<M-k>", TERM_ESCAPE .. "<C-w>k")
+vim.keymap.set("t", "<M-l>", TERM_ESCAPE .. "<C-w>l")
 
 vim.keymap.set("n", "<M-f>", "<C-w><C-w>")
 vim.keymap.set("n", "<M-g>", "<C-6>")
+vim.keymap.set("t", "<M-f>", TERM_ESCAPE .. "<C-w><C-w>")
+vim.keymap.set("t", "<M-g>", TERM_ESCAPE .. "<C-6>")
+
+vim.keymap.set("n", "<M-v>", ":sp<Return>")
+vim.keymap.set("n", "<M-b>", ":vsp<Return>")
+vim.keymap.set("n", "<M-t>", ":term<Return>")
+
+vim.keymap.set("n", "<M-q>", ":close<Return>")
 
 -- horizontal scroll
 vim.keymap.set("", "<S-ScrollWheelUp>", "4zh")
 vim.keymap.set("", "<S-ScrollWheelDown>", "4zl")
 vim.keymap.set("", "<S-Left>", "8zh")
 vim.keymap.set("", "<S-Right>", "8zl")
-
--- terminal normal mode
-vim.keymap.set("t", "<Esc>", "<C-\\><C-n>")
 
 -- disable search highlight
 vim.keymap.set("n", "g<Return>", function()
@@ -430,12 +454,17 @@ local function mark_opener()
 	return require("telescope.builtin").marks()
 end
 
+local function grug_far()
+	return vim.cmd("GrugFar")
+end
+
 vim.keymap.set("", "<leader>p", file_opener)
 vim.keymap.set("", "<leader>P", file_opener_ignore_vcs)
 vim.keymap.set("", "<leader>b", buffer_opener)
 vim.keymap.set("", "<leader>B", save_buffers)
 vim.keymap.set("", "<leader>f", live_grep)
 vim.keymap.set("", "<leader>F", live_grep_ignore_vcs)
+vim.keymap.set("", "<leader>r", grug_far)
 vim.keymap.set("", "<leader>m", mark_opener)
 
 -- center window
