@@ -6,6 +6,7 @@ import sys
 from pathlib import Path
 import tomllib
 
+# Unchanged: still defines the valid characters for a package name itself
 NAME_CHARS = r"[A-Za-z0-9._-]+"
 
 def pep503_normalize(name: str) -> str:
@@ -13,8 +14,9 @@ def pep503_normalize(name: str) -> str:
     return re.sub(r"[-_.]+", "-", name).lower()
 
 def extract_dist_name(spec: str) -> str:
-    # PEP 508-ish: take the leading dist name before extras/markers/specifiers
-    m = re.match(rf"^\s*({NAME_CHARS})", spec)
+    # PEP 508-ish: take the leading dist name before markers/specifiers
+    # MODIFIED: The regex now supports extras like `package[extra]`
+    m = re.match(rf"^\s*({NAME_CHARS}(?:\[.*?\])?)", spec)
     if not m:
         raise ValueError(f"Cannot extract package name from: {spec!r}")
     return m.group(1)
@@ -44,9 +46,20 @@ def freeze_specs(explicit_names: list[str], lockmap: dict[str, str]) -> list[str
     frozen = []
     missing = []
     for raw in explicit_names:
-        norm = pep503_normalize(raw)
+        # MODIFIED: Extract the base name (without extras) for lock file lookup,
+        # but keep the raw name (with extras) for the final output string.
+        base_name_match = re.match(rf"^({NAME_CHARS})", raw)
+        if not base_name_match:
+            # This should not happen with valid input, but is good practice
+            missing.append(raw)
+            continue
+
+        base_name = base_name_match.group(1)
+        norm = pep503_normalize(base_name)
         ver = lockmap.get(norm)
+
         if ver:
+            # Use the original `raw` name, which includes extras
             frozen.append(f"{raw}=={ver}")
         else:
             missing.append(raw)
@@ -74,7 +87,7 @@ def rewrite_pyproject_dependencies(src_text: str, items: list[str]) -> str:
 
     def replacement(m: re.Match) -> str:
         indent = m.group("indent")
-        inner_indent = indent + "  "
+        inner_indent = indent + "  " # Use spaces for indentation consistency
         lines = [f'{inner_indent}"{spec}",' for spec in items]
         body = "\n".join(lines) + ("\n" if lines else "")
         return f"{indent}dependencies = [\n{body}{indent}]"
@@ -123,7 +136,7 @@ def main():
 
     if args.mode == "freeze":
         lockmap = load_lock_versions(lock)
-        result_items = freeze_specs(explicit_names, lockmap)   # e.g., ["pkg==1.2.3", ...]
+        result_items = freeze_specs(explicit_names, lockmap)  # e.g., ["pkg[extra]==1.2.3", ...]
         # Print result lines
         for line in result_items:
             print(line)
@@ -139,7 +152,7 @@ def main():
             print(name)
         if args.write:
             src = py.read_text(encoding="utf-8")
-            # In strip mode, rewrite deps array with only bare names
+            # In strip mode, rewrite deps array with only bare names (with extras)
             dst = rewrite_pyproject_dependencies(src, explicit_names)
             py.write_text(dst, encoding="utf-8")
             print(f"\nStripped versions in: {py}", file=sys.stderr)
