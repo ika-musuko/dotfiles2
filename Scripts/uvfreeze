@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 import tomllib
 
-# Unchanged: still defines the valid characters for a package name itself
+# Defines the valid characters for a package name itself
 NAME_CHARS = r"[A-Za-z0-9._-]+"
 
 def pep503_normalize(name: str) -> str:
@@ -15,7 +15,7 @@ def pep503_normalize(name: str) -> str:
 
 def extract_dist_name(spec: str) -> str:
     # PEP 508-ish: take the leading dist name before markers/specifiers
-    # MODIFIED: The regex now supports extras like `package[extra]`
+    # Supports extras like `package[extra]`
     m = re.match(rf"^\s*({NAME_CHARS}(?:\[.*?\])?)", spec)
     if not m:
         raise ValueError(f"Cannot extract package name from: {spec!r}")
@@ -27,8 +27,9 @@ def load_explicit_dependencies(pyproject_path: Path) -> list[str]:
         deps = data["project"]["dependencies"]
     except KeyError as e:
         raise SystemExit("No [project.dependencies] found in pyproject.toml") from e
-    names = [extract_dist_name(d) for d in deps]
-    return names
+    # MODIFIED: Return the raw dependency strings as they are in the file.
+    # This preserves URLs and other specifiers for later processing.
+    return deps
 
 def load_lock_versions(uvlock_path: Path) -> dict[str, str]:
     # uv.lock is TOML with [[package]] tables containing name/version
@@ -42,16 +43,20 @@ def load_lock_versions(uvlock_path: Path) -> dict[str, str]:
         mapping[name] = ver
     return mapping
 
-def freeze_specs(explicit_names: list[str], lockmap: dict[str, str]) -> list[str]:
+def freeze_specs(full_specs: list[str], lockmap: dict[str, str]) -> list[str]:
     frozen = []
     missing = []
-    for raw in explicit_names:
-        # MODIFIED: Extract the base name (without extras) for lock file lookup,
-        # but keep the raw name (with extras) for the final output string.
-        base_name_match = re.match(rf"^({NAME_CHARS})", raw)
+    for spec in full_specs:
+        # MODIFIED: Check for git dependencies and pass them through unchanged.
+        if "@" in spec and "git+" in spec:
+            frozen.append(spec)
+            continue
+
+        # For regular packages, extract the name and find its version.
+        raw_name = extract_dist_name(spec)
+        base_name_match = re.match(rf"^({NAME_CHARS})", raw_name)
         if not base_name_match:
-            # This should not happen with valid input, but is good practice
-            missing.append(raw)
+            missing.append(raw_name)
             continue
 
         base_name = base_name_match.group(1)
@@ -59,10 +64,11 @@ def freeze_specs(explicit_names: list[str], lockmap: dict[str, str]) -> list[str
         ver = lockmap.get(norm)
 
         if ver:
-            # Use the original `raw` name, which includes extras
-            frozen.append(f"{raw}=={ver}")
+            # Use the extracted name (with extras), not the original full spec
+            frozen.append(f"{raw_name}=={ver}")
         else:
-            missing.append(raw)
+            missing.append(raw_name)
+
     if missing:
         print(
             "Warning: not found in uv.lock → " + ", ".join(missing),
@@ -131,13 +137,12 @@ def main():
     if args.mode == "freeze" and not lock.exists():
         ap.error(f"uv.lock not found: {lock}")
 
-    # read explicit names
-    explicit_names = load_explicit_dependencies(py)
+    # Read the full, raw dependency specifications
+    full_specs = load_explicit_dependencies(py)
 
     if args.mode == "freeze":
         lockmap = load_lock_versions(lock)
-        result_items = freeze_specs(explicit_names, lockmap)  # e.g., ["pkg[extra]==1.2.3", ...]
-        # Print result lines
+        result_items = freeze_specs(full_specs, lockmap)
         for line in result_items:
             print(line)
         if args.write:
@@ -147,13 +152,19 @@ def main():
             print(f"\nWrote pins into: {py}", file=sys.stderr)
 
     else:  # strip
-        # Just the names
-        for name in explicit_names:
-            print(name)
+        # MODIFIED: Process specs to either keep the URL or strip the version
+        stripped_items = []
+        for spec in full_specs:
+            if "@" in spec and "git+" in spec:
+                stripped_items.append(spec)
+            else:
+                stripped_items.append(extract_dist_name(spec))
+        
+        for item in stripped_items:
+            print(item)
         if args.write:
             src = py.read_text(encoding="utf-8")
-            # In strip mode, rewrite deps array with only bare names (with extras)
-            dst = rewrite_pyproject_dependencies(src, explicit_names)
+            dst = rewrite_pyproject_dependencies(src, stripped_items)
             py.write_text(dst, encoding="utf-8")
             print(f"\nStripped versions in: {py}", file=sys.stderr)
 
