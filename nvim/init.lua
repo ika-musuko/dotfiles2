@@ -4,6 +4,8 @@ vim.cmd("packadd packer.nvim")
 require("packer").startup(function(use)
 	use("wbthomason/packer.nvim") -- packer itself
 
+    use("diogo464/hotreload.nvim")
+
 	use("bullets-vim/bullets.vim")
 
 	use("leafOfTree/vim-matchtag")
@@ -384,8 +386,8 @@ vim.keymap.set("n", "<M-g>", "<C-6>")
 vim.keymap.set("t", "<M-f>", TERM_ESCAPE .. "<C-w><C-w>")
 vim.keymap.set("t", "<M-g>", TERM_ESCAPE .. "<C-6>")
 
-vim.keymap.set("n", "<M-v>", ":sp<Return>")
-vim.keymap.set("n", "<M-b>", ":vsp<Return>")
+vim.keymap.set("n", "<M-m>", ":sp<Return>")
+vim.keymap.set("n", "<M-i>", ":vsp<Return>")
 vim.keymap.set("n", "<M-t>", ":term<Return>")
 
 vim.keymap.set("n", "<M-q>", ":close<Return>")
