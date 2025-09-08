@@ -75,6 +75,7 @@ vim.api.nvim_create_autocmd({ "FileType" }, {
 		"xhtml",
 		"yaml",
 		"jinja",
+		"markdown",
 		"md",
 		"d2",
 	},
@@ -122,7 +123,6 @@ vim.api.nvim_create_autocmd({ "FileType" }, {
 		"groovy",
 		"json",
 		"cucumber",
-		"markdown",
 	},
 	callback = function()
 		set_indent({ width = 4 })
