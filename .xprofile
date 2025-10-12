@@ -1,8 +1,11 @@
 export GTK_THEME=Adwaita-dark
 export QT_QPA_PLATFORMTHEME=qt5ct
 
-export GTK_IM_MODULE=fcitx
-export QT_IM_MODULE=fcitx
+# IM
+unset GTK_IM_MODULE
 export XMODIFIERS=@im=fcitx
-export INPUT_METHOD=fcitx
-export GLFW_IM_MODULE=ibus
+unset QT_IM_MODULE
+export QT_IM_MODULE=fcitx
+export QT_IM_MODULES="fcitx"
+export GLFW_IM_MODULE=fcitx
+export SDL_IM_MODULE=fcitx

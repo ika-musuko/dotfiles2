@@ -3,11 +3,10 @@
 source "$HOME/Scripts/tmux-api"
 
 session "1_bench"
-window "1" "1" "nvim ~/Obsidian/longtext.md" "jr"
-window "1" "2" "fastfetch"
+window "1" "1" "fastfetch"
 
 session "2_config"
-window "2" "1" "cd ~/.Config/kitty && nvim kitty.conf" "kitty"
+window "2" "1" "cd ~/.config/kitty && nvim kitty.conf" "kitty"
 window "2" "2" "nvim ~/.tmux.conf" "tmux"
 window "2" "3" "nvim ~/.config/nvim/init.lua" "nvim"
 window "2" "4" "nvim ~/.zshrc" "zshrc"

@@ -1,4 +1,4 @@
-# sET MOD key
+# Set mod key
 set $mod Mod4
 
 # settings
@@ -6,7 +6,7 @@ focus_follows_mouse no
 mouse_warping none
 
 # Terminal, file manager, and menu
-set $terminal kitty
+set $terminal "GLFW_IM_MODULE=ibus kitty"
 set $fileManager thunar
 set $menu i3-dmenu-desktop
 
@@ -14,6 +14,7 @@ set $menu i3-dmenu-desktop
 exec_always --no-startup-id $HOME/Scripts/autostart
 exec --no-startup-id blueman-applet
 exec --no-startup-id nm-applet
+exec --no-startup-id udiskie -t
 
 # Keybindings
 bindsym $mod+Tab workspace back_and_forth
