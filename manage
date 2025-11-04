@@ -32,6 +32,7 @@ for s in \
     disk-usage \
     memory-usage \
     osoneline \
+    overnuke \
     testnerd \
     tmux-api \
     tmux-init \

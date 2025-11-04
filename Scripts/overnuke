@@ -1,0 +1,140 @@
+#!/bin/sh
+# overnuke — force-kill anything started by Overmind, without touching your regular tmux
+# Compatible with macOS & Linux. Uses only POSIX sh and common tools.
+
+set -eu
+
+DRY_RUN=0
+[ "${1-}" = "--dry-run" ] && DRY_RUN=1
+
+log() { printf '%s\n' "[overnuke] $*" >&2; }
+have() { command -v "$1" >/dev/null 2>&1; }
+act() { if [ "$DRY_RUN" -eq 1 ]; then log "(dry-run) $*"; else sh -c "$@"; fi }
+
+# Recursively SIGKILL a PID and its descendants.
+kill_tree() {
+  pid="$1"
+  # If PID is gone, we are done
+  if ! kill -0 "$pid" 2>/dev/null; then
+    return 0
+  fi
+
+  # Find child PIDs
+  kids=""
+  if have pgrep && pgrep -P "$pid" >/dev/null 2>&1; then
+    kids="$(pgrep -P "$pid" 2>/dev/null || true)"
+  else
+    # Portable fallback: parse PPID column
+    kids="$(ps -eo pid=,ppid= | awk -v p="$pid" '$2==p{print $1}')"
+  fi
+
+  # Recurse first
+  if [ -n "$kids" ]; then
+    for c in $kids; do
+      kill_tree "$c"
+    done
+  fi
+
+  # Then kill the parent
+  act "kill -9 $pid 2>/dev/null || true"
+}
+
+# Discover Overmind tmux server names (-L overmind-*)
+find_overmind_servers() {
+  # Look for tmux processes that were launched with "-L overmind-*"
+  # Works on macOS & Linux
+  ps -axo pid=,args= | awk '
+    /[t]mux/ && / -L / && /overmind-/ {
+      for (i=1; i<NF; i++) {
+        if ($i=="-L") { print $(i+1) }
+      }
+    }
+  ' | grep '^overmind-' || true
+}
+
+# Ensure tmux exists
+if ! have tmux; then
+  log "tmux not found; nothing to do."
+  exit 0
+fi
+
+SERVERS="$(find_overmind_servers)"
+if [ -z "$SERVERS" ]; then
+  log "No Overmind tmux servers found (pattern: -L overmind-*). Your regular tmux is untouched."
+else
+  log "Found Overmind tmux servers:"
+  printf '%s\n' "$SERVERS" | sed 's/^/[overnuke]   /' >&2
+
+  # For each Overmind server, enumerate sessions, panes, and kill their process trees
+  echo "$SERVERS" | while IFS= read -r LNAME; do
+    [ -n "$LNAME" ] || continue
+    # Extra safety: validate strict prefix
+    case "$LNAME" in
+      overmind-*) : ;;
+      *) log "Safety check failed for tmux server '$LNAME' (does not start with overmind-). Aborting."; exit 1 ;;
+    esac
+
+    # List sessions on this server
+    SESSIONS="$(tmux -L "$LNAME" ls 2>/dev/null | awk -F: '{print $1}')"
+    if [ -z "$SESSIONS" ]; then
+      log "No sessions on server $LNAME (maybe already gone)."
+      continue
+    fi
+
+    log "Server $LNAME sessions:"
+    printf '%s\n' "$SESSIONS" | sed 's/^/[overnuke]     /' >&2
+
+    # For each session, collect pane PIDs, kill trees, then kill the session
+    echo "$SESSIONS" | while IFS= read -r sess; do
+      [ -n "$sess" ] || continue
+      # Collect unique pane PIDs
+      PANE_PIDS="$(tmux -L "$LNAME" list-panes -t "$sess" -s -F '#{pane_pid}' 2>/dev/null | sort -u || true)"
+      if [ -n "$PANE_PIDS" ]; then
+        for pid in $PANE_PIDS; do
+          [ -n "$pid" ] || continue
+          log "Killing process tree rooted at PID $pid (server: $LNAME, session: $sess)"
+          kill_tree "$pid"
+        done
+      else
+        log "No pane PIDs in $sess (server: $LNAME)."
+      fi
+
+      log "Killing tmux session: $sess (server: $LNAME)"
+      act "tmux -L \"$LNAME\" kill-session -t \"$sess\" 2>/dev/null || true"
+    done
+  done
+fi
+
+# Kill any lingering overmind binaries for current user
+if have pkill; then
+  log "Force-killing any remaining 'overmind' processes for user $USER"
+  if [ "$DRY_RUN" -eq 1 ]; then
+    pgrep -x -u "$USER" overmind 2>/dev/null || true
+    log "(dry-run) would run: pkill -9 -x -u \"$USER\" overmind"
+  else
+    pkill -9 -x -u "$USER" overmind 2>/dev/null || true
+  fi
+else
+  # Fallback without pkill
+  # shellcheck disable=SC2009
+  PIDS="$(ps -o pid= -o comm= -u "$USER" | awk '$2=="overmind"{print $1}')"
+  if [ -n "${PIDS:-}" ]; then
+    for p in $PIDS; do
+      act "kill -9 \"$p\" 2>/dev/null || true"
+    done
+  fi
+fi
+
+# Remove Overmind socket directories (safe)
+SOCKBASE="${TMPDIR:-/tmp}"
+for d in "$SOCKBASE"/overmind-"$USER" "$SOCKBASE"/overmind-*; do
+  [ -d "$d" ] || continue
+  log "Removing Overmind socket dir: $d"
+  act "rm -rf \"$d\" 2>/dev/null || true"
+done
+
+if [ "$DRY_RUN" -eq 1 ]; then
+  log "Dry run complete. Re-run without --dry-run to execute."
+else
+  log "Done. Non-Overmind tmux servers/sessions were not touched."
+fi
