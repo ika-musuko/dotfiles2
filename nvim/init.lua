@@ -618,3 +618,105 @@ do
 	end
 	vim.keymap.set("", "<leader>n", snippet_manager)
 end
+
+-- copy github link from neovim
+do
+	local function sh(cmd)
+		local out = vim.fn.systemlist(cmd)
+		if vim.v.shell_error ~= 0 or not out or #out == 0 then return nil end
+		return vim.fn.trim(out[1])
+	end
+
+	-- Normalize remote URL to https://host/owner/repo
+	local function to_https(remote)
+		if not remote then return nil end
+		remote = remote:gsub("%.git$", "")
+
+		-- git@host:owner/repo
+		local host, path = remote:match("^git@([^:]+):(.+)$")
+		if host and path then return ("https://%s/%s"):format(host, path) end
+
+		-- ssh://git@host/owner/repo
+		host, path = remote:match("^ssh://git@([^/]+)/(.+)$")
+		if host and path then return ("https://%s/%s"):format(host, path) end
+
+		-- https already (GitHub or GHE)
+		if remote:match("^https?://") then return remote end
+
+		return nil
+	end
+
+	-- Pick revision: commit (default) or branch
+	local function get_rev(mode)
+		mode = mode or "commit"
+		if mode == "branch" then
+			local br = sh("git rev-parse --abbrev-ref HEAD")
+			if br and br ~= "HEAD" then return br end
+		end
+		return sh("git rev-parse HEAD")
+	end
+
+	local function build_github_url(opts)
+		opts = opts or {}
+		local rev_mode = opts.rev_mode or "commit"
+
+		local root = sh("git rev-parse --show-toplevel")
+		if not root then return nil, "Not inside a Git repository." end
+
+		local file_abs = vim.fn.expand("%:p")
+		if file_abs == "" then return nil, "No file associated with this buffer." end
+
+		-- Realpaths (best effort; OK if nil)
+		local real_root = vim.loop.fs_realpath(root) or root
+		local real_file = vim.loop.fs_realpath(file_abs) or file_abs
+
+		if not vim.startswith(real_file, real_root) then
+			return nil, "File is not under the repository root."
+		end
+		local rel = real_file:sub(#real_root + 2) -- strip trailing "/"
+
+		local remote = sh("git remote get-url --push origin") or sh("git remote get-url origin")
+		if not remote then return nil, "No git remote named 'origin' found." end
+
+		local https = to_https(remote)
+		if not https then return nil, ("Unsupported remote URL format: %s"):format(remote) end
+
+		local rev = get_rev(rev_mode)
+		if not rev then return nil, "Could not determine git revision." end
+
+		local line = vim.api.nvim_win_get_cursor(0)[1]
+		local url = ("%s/blob/%s/%s#L%d"):format(https, rev, rel, line)
+		return url
+	end
+
+	local function yank_to_clipboard(text)
+		vim.fn.setreg("+", text)
+		pcall(vim.fn.setreg, "*", text) -- best effort for systems with *
+		vim.notify("Copied GitHub link:\n" .. text, vim.log.levels.INFO, { title = "GitHub Link" })
+	end
+
+	-- Main callable
+	local function CopyGitHubLink(mode)
+		local url, err = build_github_url({ rev_mode = (mode == "branch") and "branch" or "commit" })
+		if not url then
+			vim.notify("GitHub link: " .. err, vim.log.levels.ERROR)
+			return
+		end
+		yank_to_clipboard(url)
+	end
+
+	-- Command (safe to re-source)
+	pcall(vim.api.nvim_del_user_command, "CopyGitHubLink")
+	vim.api.nvim_create_user_command(
+		"CopyGitHubLink",
+		function(args) CopyGitHubLink(args.fargs[1]) end,
+		{ nargs = "?", complete = function() return { "commit", "branch" } end, }
+	)
+
+	-- Mappings
+	vim.keymap.set("n", "<leader>gy", function() CopyGitHubLink("commit") end,
+	{ desc = "Copy GitHub link (commit)" })
+	vim.keymap.set("n", "<leader>gY", function() CopyGitHubLink("branch") end,
+	{ desc = "Copy GitHub link (branch)" })
+end
+
