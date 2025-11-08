@@ -1,54 +1,60 @@
---- PLUGINS
-vim.cmd("packadd packer.nvim")
+local fn = vim.fn
+local install_path = fn.stdpath("data") .. "/site/pack/paqs/start/paq-nvim"
+if fn.empty(fn.glob(install_path)) > 0 then
+	fn.system({ "git", "clone", "--depth=1", "https://github.com/savq/paq-nvim", install_path })
+end
 
-require("packer").startup(function(use)
-	use("wbthomason/packer.nvim") -- packer itself
+require("paq")({
+	"savq/paq-nvim",
 
-	use("bullets-vim/bullets.vim")
+	"bullets-vim/bullets.vim",
+	"leafOfTree/vim-matchtag",
+	"justinmk/vim-matchparenalways",
+	"ika-musuko/vim-surround",
+	"tpope/vim-repeat",
+	"tpope/vim-scriptease",
+	"tpope/vim-abolish",
+	"tpope/vim-fugitive",
+	"tpope/vim-rhubarb",
+	"michaeljsmith/vim-indent-object",
+	"LunarVim/bigfile.nvim",
+	"szw/vim-maximizer",
+	"shortcuts/no-neck-pain.nvim",
 
-	use("leafOfTree/vim-matchtag")
-	use("justinmk/vim-matchparenalways")
+	"nvim-lua/plenary.nvim",
+	"nvim-tree/nvim-web-devicons",
+	{ "nvim-telescope/telescope-fzf-native.nvim", build = "make" },
+	"nvim-telescope/telescope.nvim",
 
-	use("ika-musuko/vim-surround")
-	use("tpope/vim-repeat")
-	use("tpope/vim-scriptease")
+	"MagicDuck/grug-far.nvim",
 
-	use("tpope/vim-abolish") -- case insensitive replace (:%S)
+	"j-morano/buffer_manager.nvim",
 
-	--use("tpope/vim-sleuth") -- try to respect current project's indent settings
+	"Shougo/context_filetype.vim",
 
-	use("tpope/vim-fugitive")
-	use("tpope/vim-rhubarb")
-
-	use("michaeljsmith/vim-indent-object")
-
-	use("LunarVim/bigfile.nvim")
-
-	use("szw/vim-maximizer")
-	use("shortcuts/no-neck-pain.nvim")
-
-	use({
-		"nvim-telescope/telescope.nvim",
-		requires = { "nvim-lua/plenary.nvim", "nvim-telescope/telescope-fzf-native.nvim" },
-	})
-
-	use("MagicDuck/grug-far.nvim")
-
-	use("j-morano/buffer_manager.nvim")
-
-	use("nvim-tree/nvim-web-devicons")
-
-	use("Shougo/context_filetype.vim") -- single file multiple lang support
-	use({
+	{
 		"nvim-treesitter/nvim-treesitter",
-		run = ":TSUpdate",
+		bulild = function() pcall(vim.cmd, "TSUpdate") end,
+	},
+
+	"leafOfTree/vim-svelte-plugin",
+	"leafOfTree/vim-vue-plugin",
+	"terrastruct/d2-vim",
+	"zorab47/procfile.vim",
+})
+
+pcall(function()
+	local telescope = require("telescope")
+	telescope.setup({})
+	pcall(telescope.load_extension, "fzf")
+end)
+
+-- Treesitter sane defaults
+pcall(function()
+	require("nvim-treesitter.configs").setup({
+		highlight = { enable = true },
+		indent    = { enable = true },
 	})
-
-	use("leafOfTree/vim-svelte-plugin")
-	use("leafOfTree/vim-vue-plugin")
-	use("terrastruct/d2-vim")
-
-	use("zorab47/procfile.vim")
 end)
 
 --- language indenting (MUST BE NEAR TOP)
@@ -60,6 +66,24 @@ local function set_indent(opts)
 end
 
 vim.api.nvim_create_augroup("setIndent", { clear = true })
+
+vim.api.nvim_create_autocmd({ "FileType" }, {
+	group = "setIndent",
+	pattern = {
+		"cpp",
+		"c",
+		"java",
+		"groovy",
+		"json",
+		"cucumber",
+		"markdown",
+		"python",
+	},
+	callback = function()
+		set_indent({ width = 4 })
+	end,
+})
+
 vim.api.nvim_create_autocmd({ "FileType" }, {
 	group = "setIndent",
 	pattern = {
@@ -112,34 +136,6 @@ vim.api.nvim_create_autocmd({ "FileType" }, {
 		set_indent({ width = 8, use_tabs = true })
 	end,
 })
-
-vim.api.nvim_create_autocmd({ "FileType" }, {
-	group = "setIndent",
-	pattern = {
-		"cpp",
-		"c",
-		"java",
-		"groovy",
-		"json",
-		"cucumber",
-		"markdown",
-	},
-	callback = function()
-		set_indent({ width = 4 })
-	end,
-})
-
-
-vim.api.nvim_create_autocmd({ "FileType" }, {
-	group = "setIndent",
-	pattern = {
-		"python",
-	},
-	callback = function()
-		set_indent({ width = 4 })
-	end,
-})
-
 
 
 -- language highlighting
@@ -426,6 +422,12 @@ local function live_grep_ignore_vcs()
 	})
 end
 
+
+local function grug_far()
+	vim.cmd("GrugFar")
+end
+
+
 local function mark_opener()
 	return require("telescope.builtin").marks()
 end
@@ -434,7 +436,7 @@ vim.keymap.set("", "<leader>p", file_opener)
 vim.keymap.set("", "<leader>P", file_opener_ignore_vcs)
 vim.keymap.set("", "<leader>b", buffer_opener)
 vim.keymap.set("", "<leader>B", save_buffers)
-vim.keymap.set("", "<leader>f", live_grep)
+vim.keymap.set("", "<leader>f", grug_far)
 vim.keymap.set("", "<leader>F", live_grep_ignore_vcs)
 vim.keymap.set("", "<leader>m", mark_opener)
 
