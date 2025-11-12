@@ -1,17 +1,23 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 source "$HOME/Scripts/tmux-api"
 
+if [[ "$OSTYPE" == "darwin"* ]]; then
+	MACOS=1
+else
+	LINUX=1
+fi
+
+
 session "1_bench"
-window "1" "1" "btop"
-window "1" "2" "fastfetch"
+window "1" "1" "fastfetch"
 
 session "2_config"
 window "2" "1" "cd ~/.config/kitty && nvim kitty.conf" "kitty"
 window "2" "2" "nvim ~/.tmux.conf" "tmux"
 window "2" "3" "nvim ~/.config/" "nvim"
 window "2" "4" "nvim ~/.zshrc" "zshrc"
-window "2" "6" "nvim ~/.config/i3/config ~/Scripts/autostart ~/.config/polybar/config.ini ~/Scripts/tmux-init ~/Scripts/tmux-init-user" "wm"
+[[ -n "$LINUX" ]] && window "2" "6" "nvim ~/.config/i3/config ~/Scripts/autostart ~/.config/polybar/config.ini ~/Scripts/tmux-init ~/Scripts/tmux-init-user" "wm"
 window "2" "8" "cd ~/Code/dotfiles2" "dotfiles"
 
 user_file="$HOME/Scripts/tmux-init-user"

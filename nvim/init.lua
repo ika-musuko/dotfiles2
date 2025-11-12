@@ -463,6 +463,7 @@ vim.keymap.set("", "<leader>z", ":MaximizerToggle<CR>")
 
 --- custom commands and keybindings
 -- uppercase corrections
+vim.api.nvim_create_user_command("Q", "q", {})
 vim.api.nvim_create_user_command("W", "w", {})
 vim.api.nvim_create_user_command("Sp", "sp", {})
 vim.api.nvim_create_user_command("Vsp", "vsp", {})
