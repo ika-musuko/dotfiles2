@@ -306,6 +306,9 @@ do
 
 	-- yaml
 	vim.cmd("hi link yamlBlockMappingKey Constant")
+
+	-- shell
+	vim.cmd("hi link @variable.bash Constant")
 end
 
 --- environment settings
