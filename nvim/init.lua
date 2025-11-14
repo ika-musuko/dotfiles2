@@ -78,6 +78,8 @@ vim.api.nvim_create_autocmd({ "FileType" }, {
 		"cucumber",
 		"markdown",
 		"python",
+		"sh",
+		"bash",
 	},
 	callback = function()
 		set_indent({ width = 4 })
