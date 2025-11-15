@@ -351,10 +351,33 @@ do
 end
 
 -- window navigation
-vim.keymap.set("", "<C-h>", "<C-w>h")
-vim.keymap.set("", "<C-j>", "<C-w>j")
-vim.keymap.set("", "<C-k>", "<C-w>k")
-vim.keymap.set("", "<C-l>", "<C-w>l")
+local function hybrid_navigate(direction)
+	return function()
+		local prev_win = vim.api.nvim_get_current_win()
+		vim.cmd("wincmd " .. direction)
+
+		local same_window = prev_win == vim.api.nvim_get_current_win()
+
+		local window_zoomed_flag = vim.fn.system({"tmux", "display-message", "-p", "#{window_zoomed_flag}"})
+		local zoomed_window = window_zoomed_flag == "1\n"
+
+		if os.getenv("TMUX") and not zoomed_window and same_window then
+			local tmux_direction = ({
+				h = "L",
+				j = "D",
+				k = "U",
+				l = "R"
+			})[direction]
+
+			vim.fn.system({"tmux", "select-pane", "-" .. tmux_direction})
+		end
+	end
+end
+
+vim.keymap.set("", "<C-h>", hybrid_navigate("h"))
+vim.keymap.set("", "<C-j>", hybrid_navigate("j"))
+vim.keymap.set("", "<C-k>", hybrid_navigate("k"))
+vim.keymap.set("", "<C-l>", hybrid_navigate("l"))
 
 vim.keymap.set("i", "<C-h>", "<Esc><C-w>h")
 vim.keymap.set("i", "<C-j>", "<Esc><C-w>j")
