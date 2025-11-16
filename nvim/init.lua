@@ -7,36 +7,22 @@ end
 require("paq")({
 	"savq/paq-nvim",
 
+	"MagicDuck/grug-far.nvim",
+	"j-morano/buffer_manager.nvim",
+
 	"bullets-vim/bullets.vim",
 	"leafOfTree/vim-matchtag",
 	"justinmk/vim-matchparenalways",
 	"ika-musuko/vim-surround",
 	"tpope/vim-repeat",
-	"tpope/vim-scriptease",
 	"tpope/vim-abolish",
-	"tpope/vim-fugitive",
-	"tpope/vim-rhubarb",
-	"michaeljsmith/vim-indent-object",
-	"LunarVim/bigfile.nvim",
-	"szw/vim-maximizer",
-	"shortcuts/no-neck-pain.nvim",
 
 	"nvim-lua/plenary.nvim",
 	"nvim-tree/nvim-web-devicons",
 	{ "nvim-telescope/telescope-fzf-native.nvim", build = "make" },
 	"nvim-telescope/telescope.nvim",
 
-	"MagicDuck/grug-far.nvim",
-
-	"j-morano/buffer_manager.nvim",
-
 	"Shougo/context_filetype.vim",
-
-	{
-		"nvim-treesitter/nvim-treesitter",
-		bulild = function() pcall(vim.cmd, "TSUpdate") end,
-	},
-
 	"leafOfTree/vim-svelte-plugin",
 	"leafOfTree/vim-vue-plugin",
 	"terrastruct/d2-vim",
@@ -47,14 +33,6 @@ pcall(function()
 	local telescope = require("telescope")
 	telescope.setup({})
 	pcall(telescope.load_extension, "fzf")
-end)
-
--- Treesitter sane defaults
-pcall(function()
-	require("nvim-treesitter.configs").setup({
-		highlight = { enable = true },
-		indent    = { enable = true },
-	})
 end)
 
 --- language indenting (MUST BE NEAR TOP)
@@ -141,16 +119,6 @@ vim.api.nvim_create_autocmd({ "FileType" }, {
 
 
 -- language highlighting
-require("nvim-treesitter.configs").setup({
-	highlight = { enable = true },
-	incremental_selection = { enable = true },
-	textobjects = { enable = true },
-	indent = { enable = true },
-	ensure_installed = {
-		"cpp",
-	},
-})
-
 vim.api.nvim_create_autocmd({"BufRead", "BufNewFile"}, {
 	pattern = {"*.jinja", "*.jinja2"},
 	callback = function()
@@ -469,27 +437,6 @@ vim.keymap.set("", "<leader>f", grug_far)
 vim.keymap.set("", "<leader>F", live_grep_ignore_vcs)
 vim.keymap.set("", "<leader>m", mark_opener)
 
--- center window
-local function toggle_window_centering()
-	require("no-neck-pain").setup({
-		width = 150,
-	})
-	vim.cmd("NoNeckPain")
-end
-
-local function toggle_presentation_mode()
-	require("no-neck-pain").setup({
-		width = 80,
-	})
-	vim.cmd("NoNeckPain")
-end
-
-vim.keymap.set("", "<leader>g", toggle_window_centering)
-vim.keymap.set("", "<leader>G", toggle_presentation_mode)
-
--- maximizer
-vim.keymap.set("", "<leader>z", ":MaximizerToggle<CR>")
-
 --- custom commands and keybindings
 -- uppercase corrections
 vim.api.nvim_create_user_command("Q", "q", {})
@@ -651,7 +598,7 @@ do
 	vim.keymap.set("", "<leader>n", snippet_manager)
 end
 
--- copy github link from neovim
+-- GitHub links
 do
 	local function sh(cmd)
 		local out = vim.fn.systemlist(cmd)
@@ -698,7 +645,6 @@ do
 		local file_abs = vim.fn.expand("%:p")
 		if file_abs == "" then return nil, "No file associated with this buffer." end
 
-		-- Realpaths (best effort; OK if nil)
 		local real_root = vim.loop.fs_realpath(root) or root
 		local real_file = vim.loop.fs_realpath(file_abs) or file_abs
 
@@ -721,34 +667,34 @@ do
 		return url
 	end
 
-	local function yank_to_clipboard(text)
-		vim.fn.setreg("+", text)
-		pcall(vim.fn.setreg, "*", text) -- best effort for systems with *
-		vim.notify("Copied GitHub link:\n" .. text, vim.log.levels.INFO, { title = "GitHub Link" })
-	end
-
-	-- Main callable
-	local function CopyGitHubLink(mode)
-		local url, err = build_github_url({ rev_mode = (mode == "branch") and "branch" or "commit" })
-		if not url then
-			vim.notify("GitHub link: " .. err, vim.log.levels.ERROR)
+	local function open_in_browser(url)
+		-- Neovim 0.10+ has vim.ui.open
+		if vim.ui and vim.ui.open then
+			vim.ui.open(url)
 			return
 		end
-		yank_to_clipboard(url)
+
+		local cmd
+		if vim.fn.has("mac") == 1 then
+			cmd = { "open", url }
+		elseif vim.fn.has("win32") == 1 or vim.fn.has("win64") == 1 then
+			cmd = { "cmd", "/c", "start", url }
+		else
+			cmd = { "xdg-open", url }
+		end
+		vim.fn.jobstart(cmd, { detach = true })
 	end
 
-	-- Command (safe to re-source)
-	pcall(vim.api.nvim_del_user_command, "CopyGitHubLink")
-	vim.api.nvim_create_user_command(
-		"CopyGitHubLink",
-		function(args) CopyGitHubLink(args.fargs[1]) end,
-		{ nargs = "?", complete = function() return { "commit", "branch" } end, }
-	)
+	local function OpenGitHubLink(mode)
+		local url, err = build_github_url({ rev_mode = (mode == "branch") and "branch" or "commit" })
+		if not url then
+			vim.notify("GitHub open: " .. err, vim.log.levels.ERROR)
+			return
+		end
+		open_in_browser(url)
+	end
 
 	-- Mappings
-	vim.keymap.set("n", "<leader>gy", function() CopyGitHubLink("commit") end,
-	{ desc = "Copy GitHub link (commit)" })
-	vim.keymap.set("n", "<leader>gY", function() CopyGitHubLink("branch") end,
-	{ desc = "Copy GitHub link (branch)" })
+	vim.keymap.set("n", "<leader>g", function() OpenGitHubLink("commit") end,
+		{ desc = "Open GitHub link (commit)" })
 end
-
