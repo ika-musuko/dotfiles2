@@ -356,12 +356,13 @@ local function hybrid_navigate(direction)
 		local prev_win = vim.api.nvim_get_current_win()
 		vim.cmd("wincmd " .. direction)
 
-		local same_window = prev_win == vim.api.nvim_get_current_win()
-
-		local window_zoomed_flag = vim.fn.system({"tmux", "display-message", "-p", "#{window_zoomed_flag}"})
-		local zoomed_window = window_zoomed_flag == "1\n"
-
-		if os.getenv("TMUX") and not zoomed_window and same_window then
+		if
+			prev_win == vim.api.nvim_get_current_win()
+			and os.getenv("TMUX")
+			-- encapsulating tmux pane is zoomed, don't fire off to tmux
+			-- because having the other windows open by default on navigation is annoying
+			and vim.fn.system({"tmux", "display-message", "-p", "#{window_zoomed_flag}"}) ~= "1\n"
+		then
 			local tmux_direction = ({
 				h = "L",
 				j = "D",
