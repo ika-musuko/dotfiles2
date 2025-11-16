@@ -1,7 +1,7 @@
-local fn = vim.fn
-local install_path = fn.stdpath("data") .. "/site/pack/paqs/start/paq-nvim"
-if fn.empty(fn.glob(install_path)) > 0 then
-	fn.system({ "git", "clone", "--depth=1", "https://github.com/savq/paq-nvim", install_path })
+-- auto-install paq
+local install_path = vim.fn.stdpath("data") .. "/site/pack/paqs/start/paq-nvim"
+if vim.fn.empty(fn.glob(install_path)) > 0 then
+	vim.fn.system({ "git", "clone", "--depth=1", "https://github.com/savq/paq-nvim", install_path })
 end
 
 require("paq")({
@@ -407,19 +407,6 @@ local function save_buffers()
 	print("Session saved to .sesh.vim. Open with `nvim -S .sesh.vim`")
 end
 
-local function live_grep()
-	return require("telescope.builtin").live_grep()
-end
-
-local function live_grep_ignore_vcs()
-	return require("telescope.builtin").live_grep({
-		additional_args = {
-			"-u"
-		},
-	})
-end
-
-
 local function grug_far()
 	vim.cmd("GrugFar")
 end
@@ -434,7 +421,6 @@ vim.keymap.set("", "<leader>P", file_opener_ignore_vcs)
 vim.keymap.set("", "<leader>b", buffer_opener)
 vim.keymap.set("", "<leader>B", save_buffers)
 vim.keymap.set("", "<leader>f", grug_far)
-vim.keymap.set("", "<leader>F", live_grep_ignore_vcs)
 vim.keymap.set("", "<leader>m", mark_opener)
 
 --- custom commands and keybindings
