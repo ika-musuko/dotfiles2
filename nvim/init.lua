@@ -1,6 +1,6 @@
 -- auto-install paq
 local install_path = vim.fn.stdpath("data") .. "/site/pack/paqs/start/paq-nvim"
-if vim.fn.empty(fn.glob(install_path)) > 0 then
+if vim.fn.empty(vim.fn.glob(install_path)) > 0 then
 	vim.fn.system({ "git", "clone", "--depth=1", "https://github.com/savq/paq-nvim", install_path })
 end
 
@@ -58,6 +58,7 @@ vim.api.nvim_create_autocmd({ "FileType" }, {
 		"python",
 		"sh",
 		"bash",
+		"zsh",
 	},
 	callback = function()
 		set_indent({ width = 4 })
@@ -251,6 +252,15 @@ do
 	-- c/c++
 	vim.cmd("hi link cCharacter Special")
 	vim.cmd("hi link cParen MatchParen")
+	vim.api.nvim_create_autocmd("FileType", {
+		pattern = { "c", "cpp" },
+		callback = function()
+			vim.cmd([[
+				syntax keyword cSizedNumericTypes u8 s8 u16 s16 u32 s32 u64 s64 f32 f64
+				highlight def link cSizedNumericTypes Type
+			]])
+		end,
+	})
 
 	-- d2
 	vim.cmd("hi link d2Operator Special")
