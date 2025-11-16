@@ -297,8 +297,8 @@ vim.cmd("autocmd FocusGained * checktime")
 vim.opt.list = true
 vim.opt.clipboard = "unnamedplus"
 
-vim.opt.number = true
-vim.opt.relativenumber = true
+vim.opt.number = false
+vim.opt.relativenumber = false
 vim.opt.statuscolumn = "%s %l %r"
 
 vim.opt.splitbelow = true
