@@ -1,12 +1,18 @@
 #!/usr/bin/env bash
 
+# this is the worst script of all time
+#
+# i wish kitty remote control worked under tmux but it doesn't
+# but running tmux under kitty is unsupported by the kitty developer
+# so we have to resort to this crazy hack script
+
 gutter_size=260
+
 focus_mode_file=/tmp/FOCUS_MODE
 
-# Adjust these if needed
-kitty_conf_dir="${KITTY_CONFIG_DIRECTORY:-$HOME/.config/kitty}"
+### kitty helpers
+kitty_conf_dir="$HOME/.config/kitty"
 kitty_conf="$kitty_conf_dir/kitty.conf"
-kitty_margin_option="window_margin_width"   # or single_window_margin_width if you prefer
 
 set_kitty_margin() {
     local value="$1"
@@ -14,17 +20,11 @@ set_kitty_margin() {
     [ -f "$kitty_conf" ] || return
 
     # If the option exists, replace it; otherwise append it
-    if grep -q "^[[:space:]]*$kitty_margin_option[[:space:]]" "$kitty_conf"; then
-        sed -i -E "s|^[[:space:]]*${kitty_margin_option}[[:space:]].*|${kitty_margin_option} ${value}|" "$kitty_conf"
+    if grep -q "^[[:space:]]*window_margin_width[[:space:]]" "$kitty_conf"; then
+        sed -i -E "s|^[[:space:]]*window_margin_width[[:space:]].*|window_margin_width ${value}|" "$kitty_conf"
     else
-        printf '\n%s %s\n' "$kitty_margin_option" "$value" >> "$kitty_conf"
+        printf '\n%s %s\n' "window_margin_width" "$value" >> "$kitty_conf"
     fi
-}
-
-tmux_set_status() {
-    tmux list-sessions -F '#S' | while read s; do
-      tmux set-option -t "$s" status $1
-    done
 }
 
 reload_kitty_config() {
@@ -42,21 +42,28 @@ reload_kitty_config() {
     fi
 }
 
+### tmux helpers
+tmux_set_status() {
+    tmux list-sessions -F '#S' | while read s; do
+      tmux set-option -t "$s" status $1
+    done
+}
+
+
+# focus mode on
 if [ ! -f "$focus_mode_file" ]; then
     touch "$focus_mode_file"
-    # focus mode on
 
     tmux_set_status off
-
     set_kitty_margin "0 $gutter_size 0"
     reload_kitty_config
+
+ # focus mode off
 else
     rm -f "$focus_mode_file"
-    # focus mode off
 
     tmux_set_status on
-
-    # Kitty: reset margins and reload config
     set_kitty_margin "0 0 0"
     reload_kitty_config
+
 fi
