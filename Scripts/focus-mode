@@ -21,6 +21,12 @@ set_kitty_margin() {
     fi
 }
 
+tmux_set_status() {
+    tmux list-sessions -F '#S' | while read s; do
+      tmux set-option -t "$s" status $1
+    done
+}
+
 reload_kitty_config() {
     # Prefer KITTY_PID if available
     if [ -n "${KITTY_PID-}" ] && kill -0 "$KITTY_PID" 2>/dev/null; then
@@ -40,7 +46,7 @@ if [ ! -f "$focus_mode_file" ]; then
     touch "$focus_mode_file"
     # focus mode on
 
-    tmux set -s status off
+    tmux_set_status off
 
     set_kitty_margin "0 $gutter_size 0"
     reload_kitty_config
@@ -48,7 +54,7 @@ else
     rm -f "$focus_mode_file"
     # focus mode off
 
-    tmux set -s status on
+    tmux_set_status on
 
     # Kitty: reset margins and reload config
     set_kitty_margin "0 0 0"
