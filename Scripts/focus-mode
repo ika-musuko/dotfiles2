@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+
+gutter_size=260
+focus_mode_file=/tmp/FOCUS_MODE
+
+# Adjust these if needed
+kitty_conf_dir="${KITTY_CONFIG_DIRECTORY:-$HOME/.config/kitty}"
+kitty_conf="$kitty_conf_dir/kitty.conf"
+kitty_margin_option="window_margin_width"   # or single_window_margin_width if you prefer
+
+set_kitty_margin() {
+    local value="$1"
+
+    [ -f "$kitty_conf" ] || return
+
+    # If the option exists, replace it; otherwise append it
+    if grep -q "^[[:space:]]*$kitty_margin_option[[:space:]]" "$kitty_conf"; then
+        sed -i -E "s|^[[:space:]]*${kitty_margin_option}[[:space:]].*|${kitty_margin_option} ${value}|" "$kitty_conf"
+    else
+        printf '\n%s %s\n' "$kitty_margin_option" "$value" >> "$kitty_conf"
+    fi
+}
+
+reload_kitty_config() {
+    # Prefer KITTY_PID if available
+    if [ -n "${KITTY_PID-}" ] && kill -0 "$KITTY_PID" 2>/dev/null; then
+        kill -SIGUSR1 "$KITTY_PID" 2>/dev/null || true
+        return
+    fi
+
+    # Fallback: first kitty process
+    local pid
+    pid="$(pgrep -x kitty | head -n1 || true)"
+    if [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null; then
+        kill -SIGUSR1 "$pid" 2>/dev/null || true
+    fi
+}
+
+if [ ! -f "$focus_mode_file" ]; then
+    touch "$focus_mode_file"
+    # focus mode on
+
+    tmux set -s status off
+
+    set_kitty_margin "0 $gutter_size 0"
+    reload_kitty_config
+else
+    rm -f "$focus_mode_file"
+    # focus mode off
+
+    tmux set -s status on
+
+    # Kitty: reset margins and reload config
+    set_kitty_margin "0 0 0"
+    reload_kitty_config
+fi

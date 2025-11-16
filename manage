@@ -30,6 +30,7 @@ for s in \
     clock-emoji \
     cpu-usage \
     disk-usage \
+    focus-mode \
     memory-usage \
     osoneline \
     overnuke \

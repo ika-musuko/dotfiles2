@@ -158,7 +158,7 @@ do
     -- interface
     vim.api.nvim_set_hl(0, "Visual", { ctermfg = none, ctermbg = "darkgray" })
 
-    vim.api.nvim_set_hl(0, "StatusLine", { ctermfg = white, ctermbg = brightblack })
+    vim.api.nvim_set_hl(0, "StatusLine", { ctermfg = brightgreen, ctermbg = none })
     vim.api.nvim_set_hl(0, "StatusLineNC", { ctermfg = brightblack, ctermbg = black })
 
     vim.api.nvim_set_hl(0, "Search", { ctermfg = black, ctermbg = yellow })
@@ -287,8 +287,8 @@ vim.cmd("autocmd FocusGained * checktime")
 vim.opt.list = true
 vim.opt.clipboard = "unnamedplus"
 
-vim.opt.number = false
-vim.opt.relativenumber = false
+vim.opt.number = true
+vim.opt.relativenumber = true
 vim.opt.statuscolumn = "%s %l %r"
 
 vim.opt.splitbelow = true
