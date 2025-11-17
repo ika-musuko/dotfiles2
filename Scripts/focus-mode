@@ -44,26 +44,33 @@ reload_kitty_config() {
 
 ### tmux helpers
 tmux_set_status() {
-    tmux list-sessions -F '#S' | while read s; do
-      tmux set-option -t "$s" status $1
-    done
+    tmux list-sessions -F '#S' \
+        | while read s; do
+            tmux set-option -t "$s" status $1
+        done
 }
 
+if [[ "$1" == *"kittymargins"* ]]; then SET_KITTY_MARGINS=1; fi
+if [[ "$1" == *"status"* ]]; then SET_STATUS=1; fi
 
 # focus mode on
 if [ ! -f "$focus_mode_file" ]; then
     touch "$focus_mode_file"
 
-    tmux_set_status off
-    set_kitty_margin "0 $gutter_size 0"
-    reload_kitty_config
+    [ -n "$SET_STATUS" ] && tmux_set_status off
+    if [ -n "$SET_KITTY_MARGINS" ]; then
+        set_kitty_margin "0 $gutter_size 0"
+        reload_kitty_config
+    fi
 
  # focus mode off
 else
     rm -f "$focus_mode_file"
 
-    tmux_set_status on
-    set_kitty_margin "0 0 0"
-    reload_kitty_config
+    [ -n "$SET_STATUS" ] && tmux_set_status on
+    if [ -n "$SET_KITTY_MARGINS" ]; then
+        set_kitty_margin "0 0 0"
+        reload_kitty_config
+    fi
 
 fi

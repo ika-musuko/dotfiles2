@@ -119,6 +119,46 @@ vim.api.nvim_create_autocmd({"BufRead", "BufNewFile"}, {
 
 vim.g.vim_svelte_plugin_load_full_syntax = 1
 
+-- keywordprg
+vim.api.nvim_create_autocmd("FileType", {
+    pattern = {
+        "vim",
+        "help"
+    },
+    callback = function()
+        vim.bo.keywordprg = ":help"
+    end,
+})
+
+vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
+    pattern = "init.lua",
+    callback = function()
+        vim.bo.keywordprg = ":help"
+    end,
+})
+
+vim.api.nvim_create_autocmd("FileType", {
+    pattern = {
+        "c",
+        "cpp",
+        "sh",
+        "bash",
+        "zsh",
+        "tmux.conf",
+        "kitty.conf"
+    },
+    callback = function()
+        vim.bo.keywordprg = "man"
+    end,
+})
+
+vim.api.nvim_create_autocmd("FileType", {
+    pattern = "python",
+    callback = function()
+        vim.bo.keywordprg = "python -m pydoc"
+    end,
+})
+
 --- color scheme
 vim.o.termguicolors = false
 vim.opt.background = "dark"
@@ -316,6 +356,7 @@ do
     end
 
     vim.keymap.set("n", "<M-/>", reload_config)
+    vim.keymap.set("n", "<D-/>", reload_config)
 end
 
 
@@ -355,19 +396,44 @@ vim.keymap.set("i", "<C-l>", "<Esc><C-w>l")
 vim.keymap.set("n", "<M-f>", "<C-w><C-w>")
 vim.keymap.set("n", "<M-g>", "<C-6>")
 
+
 -- horizontal scroll
 vim.keymap.set("", "<S-ScrollWheelUp>", "4zh")
 vim.keymap.set("", "<S-ScrollWheelDown>", "4zl")
 vim.keymap.set("", "<S-Left>", "8zh")
 vim.keymap.set("", "<S-Right>", "8zl")
 
+
 -- terminal normal mode
 vim.keymap.set("t", "<Esc>", "<C-\\><C-n>")
+
+
+-- execute shell command to a new buffer
+do
+    local function run_shell_in_buffer(opts)
+        cmd = opts.fargs[1]
+        vim.cmd("r! " .. cmd)
+    end
+
+    local function run_shell_horizontal(opts)
+        vim.cmd("new")
+        run_shell_in_buffer(opts)
+    end
+
+    local function run_shell_vertical(opts)
+        vim.cmd("vnew")
+        run_shell_in_buffer(opts)
+    end
+
+    vim.api.nvim_create_user_command("C", run_shell_horizontal, { nargs = 1 })
+    vim.api.nvim_create_user_command("V", run_shell_vertical, { nargs = 1 })
+end
 
 -- disable search highlight
 vim.keymap.set("n", "g<Return>", function()
     vim.cmd("noh")
 end)
+
 
 --- plugin settings and keybindings
 -- telescope
@@ -429,6 +495,11 @@ vim.api.nvim_create_user_command("Q", "q", {})
 vim.api.nvim_create_user_command("W", "w", {})
 vim.api.nvim_create_user_command("Sp", "sp", {})
 vim.api.nvim_create_user_command("Vsp", "vsp", {})
+
+
+-- buffers
+vim.keymap.set("", "<C-q>", ":bd!<CR>")
+
 
 -- syntax
 vim.keymap.set("", "<leader>i", function()

@@ -68,9 +68,12 @@ case "$OSTYPE" in
 		copy_file ~/.config/fcitx5/config fcitx5/config
 esac
 
-# Terminal
+# terminal
 copy_file ~/.config/kitty/kitty.conf kitty/kitty.conf
 copy_file ~/.tmux.conf .tmux.conf
 
-# Neovim
+# editor
 copy_file ~/.config/nvim/init.lua nvim/init.lua
+
+# browser
+copy_file ~/.config/vivaldi/appearance.css vivaldi/appearance.css
