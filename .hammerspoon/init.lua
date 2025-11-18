@@ -98,7 +98,7 @@ do
         j = "Vivaldi",
         k = "kitty",
         m = "Notes",
-        s = "System Settings",
+        [","] = "System Settings",
     }
 
     for key, app in pairs(shortcuts) do
