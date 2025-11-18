@@ -1,21 +1,4 @@
+/* hide window title bar */
 #header {
   display: none !important;
 }
-
-#panels-container,
-#switch,
-#switch button,
-#switch .button-toolbar,
-#switch .vivaldi {
-  display: none !important;
-  margin: 0 auto;
-}
-
-#panels-container + .resize-handle,
-#panels-container ~ .resize-handle,
-#browser.left#main .resize-handle,
-#browser.right#main .resize-handle {
-  display: none !important;
-  margin: 0 auto;
-}
-
