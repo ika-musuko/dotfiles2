@@ -1,5 +1,11 @@
 local hyper = {"shift", "cmd"}
 
+-- reset existing keybinds
+for _, hotkey in pairs(hs.hotkey.getHotkeys()) do
+    hotkey:delete()
+end
+
+
 -- app launcher
 do
     local APP_DIRS = {
@@ -92,12 +98,11 @@ do
 
     hs.hotkey.bind(hyper, "space", showAppChooser)
     local shortcuts = {
-        d = "Calendar",
         f = "Finder",
         h = "Hammerspoon",
         j = "Vivaldi",
         k = "kitty",
-        m = "Notes",
+        m = "Chromium",
         [","] = "System Settings",
     }
 
