@@ -10,18 +10,11 @@ fi
 
 
 session "1"
-window "1" "1" "fastfetch"
-
-session "2"
-window "2" "1" "cd ~/Code/dotfiles2" "dotfiles"
-window "2" "2" "nvim ~/.tmux.conf" "tmux"
-window "2" "3" "cd ~/.config/nvim && nvim init.lua" "nvim"
-window "2" "4" "nvim ~/.zshrc" "zshrc"
-window "2" "5" "cd ~/Scripts && nvim" "Scripts"
-window "2" "6" "cd ~/.config/kitty && nvim kitty.conf" "kitty"
-[[ -n "$LINUX" ]] && window "2" "7" "nvim ~/.config/i3/config ~/Scripts/autostart ~/.config/polybar/config.ini ~/Scripts/tmux-init ~/Scripts/tmux-init-user" "wm"
-
-user_file="$HOME/Scripts/tmux-init-user"
-[ -f $user_file ] && $user_file
+window "1" "1" "cd ~/Code/dotfiles2" "dotfiles"
+window "1" "2" "cd ~/.config/nvim && nvim init.lua" "nvim"
+window "1" "3" "nvim ~/.tmux.conf" "tmux"
+window "1" "4" "cd ~/Scripts && nvim" "Scripts"
+window "1" "5" "nvim ~/.zshrc" "zshrc"
+[[ -n "$LINUX" ]] && window "1" "6" "nvim ~/.config/i3/config ~/Scripts/autostart ~/.config/polybar/config.ini ~/Scripts/tmux-init ~/Scripts/tmux-init-user" "wm"
 
 tmux attach

@@ -7,14 +7,19 @@ end
 require("paq")({
     "savq/paq-nvim",
 
-    "MagicDuck/grug-far.nvim",
+    "stevearc/oil.nvim",
     "j-morano/buffer_manager.nvim",
+    "MagicDuck/grug-far.nvim",
+
     "bullets-vim/bullets.vim",
     "leafOfTree/vim-matchtag",
     "justinmk/vim-matchparenalways",
+
+    "mg979/vim-visual-multi",
     "ika-musuko/vim-surround",
     "tpope/vim-repeat",
     "tpope/vim-abolish",
+    "tpope/vim-fugitive",
 
     "nvim-lua/plenary.nvim",
     "nvim-tree/nvim-web-devicons",
@@ -22,17 +27,27 @@ require("paq")({
     "nvim-telescope/telescope.nvim",
 
     "Shougo/context_filetype.vim",
+    { 'nvim-treesitter/nvim-treesitter', branch = "main", build = ":TSUpdate" },
     "leafOfTree/vim-svelte-plugin",
     "leafOfTree/vim-vue-plugin",
     "terrastruct/d2-vim",
     "zorab47/procfile.vim",
 })
 
+-- init
 pcall(function()
     local telescope = require("telescope")
     telescope.setup({})
     pcall(telescope.load_extension, "fzf")
 end)
+
+require("oil").setup({
+    float = {
+        border = "rounded",
+        max_width = 0.5,
+        max_height = 0.5,
+    }
+})
 
 --- language indenting (MUST BE NEAR TOP)
 local function set_indent(opts)
@@ -159,6 +174,30 @@ vim.api.nvim_create_autocmd("FileType", {
     end,
 })
 
+-- treesitter
+require("nvim-treesitter").install({
+    "python",
+    "cpp",
+    "markdown",
+    "html",
+    "css",
+    "javascript",
+    "typescript",
+})
+
+vim.api.nvim_create_autocmd("FileType", {
+  callback = function(args)
+    local bufnr = args.buf
+
+    local parser, err = vim.treesitter.get_parser(bufnr, nil, { error = false })
+    if not parser then return end
+
+    vim.treesitter.start(bufnr)
+    vim.bo[bufnr].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+  end,
+})
+
+
 --- color scheme
 vim.o.termguicolors = false
 vim.opt.background = "dark"
@@ -167,6 +206,7 @@ vim.cmd("set t_Co=8")
 
 vim.cmd("syntax clear")
 vim.cmd("syntax on")
+
 
 do
     -- color names
@@ -282,15 +322,6 @@ do
     -- c/c++
     vim.cmd("hi link cCharacter Special")
     vim.cmd("hi link cParen MatchParen")
-    vim.api.nvim_create_autocmd("FileType", {
-        pattern = { "c", "cpp" },
-        callback = function()
-            vim.cmd([[
-            syntax keyword cSizedNumericTypes u8 s8 u16 s16 u32 s32 u64 s64 f32 f64
-            highlight def link cSizedNumericTypes Type
-            ]])
-        end,
-    })
 
     -- d2
     vim.cmd("hi link d2Operator Special")
@@ -482,12 +513,28 @@ local function mark_opener()
 end
 
 
+local function copy_current_filepath()
+    local path = vim.fn.expand("%:p")
+    if path == "" then
+        print("Could not copy path")
+        return
+    end
+    print(path)
+    vim.fn.setreg("+", path)
+end
+
+local function open_oil()
+    require("oil").open()
+end
+
+vim.keymap.set("", "<leader>e", open_oil)
 vim.keymap.set("", "<leader>p", file_opener)
 vim.keymap.set("", "<leader>P", file_opener_ignore_vcs)
 vim.keymap.set("", "<leader>b", buffer_opener)
 vim.keymap.set("", "<leader>B", save_buffers)
 vim.keymap.set("", "<leader>f", grug_far)
 vim.keymap.set("", "<leader>m", mark_opener)
+vim.keymap.set("", "<leader>Y", copy_current_filepath)
 
 --- custom commands and keybindings
 -- uppercase corrections
