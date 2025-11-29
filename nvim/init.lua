@@ -189,14 +189,29 @@ vim.api.nvim_create_autocmd("FileType", {
   callback = function(args)
     local bufnr = args.buf
 
-    local parser, err = vim.treesitter.get_parser(bufnr, nil, { error = false })
-    if not parser then return end
+    if not vim.api.nvim_buf_is_loaded(bufnr) then
+      return
+    end
 
-    vim.treesitter.start(bufnr)
-    vim.bo[bufnr].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+    if vim.bo[bufnr].buftype ~= "" then
+      return
+    end
+
+    local ok, parser = pcall(vim.treesitter.get_parser, bufnr, nil)
+    if not ok or not parser then
+      return
+    end
+
+    pcall(vim.treesitter.start, bufnr)
+
+    local ok_indent = pcall(function()
+      vim.bo[bufnr].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+    end)
+    if not ok_indent then
+      return
+    end
   end,
 })
-
 
 --- color scheme
 vim.o.termguicolors = false
@@ -329,8 +344,15 @@ do
     -- markdown
     local h1 = cyan
     local h2 = blue
-    local h3 = brightcyan
-    local h4 = brightblue
+    local h3 = yellow
+    local h4 = brightyellow
+    -- treesitter markdown
+    vim.api.nvim_set_hl(0, "@markup.heading.1.markdown", { ctermfg = h1 })
+    vim.api.nvim_set_hl(0, "@markup.heading.2.markdown", { ctermfg = h2 })
+    vim.api.nvim_set_hl(0, "@markup.heading.3.markdown", { ctermfg = h3 })
+    vim.api.nvim_set_hl(0, "@markup.heading.4.markdown", { ctermfg = h4 })
+    vim.api.nvim_set_hl(0, "@markup.raw.markdown_inline", { ctermfg = brightwhite })
+    -- vanilla markdown
     vim.api.nvim_set_hl(0, "markdownH1", { ctermfg = h1 })
     vim.api.nvim_set_hl(0, "markdownH2", { ctermfg = h2 })
     vim.api.nvim_set_hl(0, "markdownH3", { ctermfg = h3 })

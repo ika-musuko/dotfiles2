@@ -40,7 +40,8 @@ for s in \
     tmux-sessions \
     tofi \
     upt \
-    uvfreeze
+    uvfreeze \
+    wholegit
 do
     copy_file ~/Scripts/$s Scripts/$s
 done

@@ -1,0 +1,2 @@
+ #!/usr/bin/env bash
+ git ls-files | xargs file | grep "text" | cut -d: -f1 | while read f; do echo "=== $f ===" && cat "$f" && echo; done

@@ -9,10 +9,10 @@ end
 -- quick app open shortcuts
 do
     local shortcuts = {
-        f = "finder",
-        j = "vivaldi",
-        k = "kitty",
-        m = "chromium",
+        s = "Kitty",
+        d = "Vivaldi",
+        e = "ZenHub",
+        l = "Google Calendar",
         [","] = "System Settings",
     }
 
