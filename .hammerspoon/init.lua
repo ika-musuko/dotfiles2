@@ -9,7 +9,7 @@ end
 -- quick app open shortcuts
 do
     local shortcuts = {
-        s = "Kitty",
+        a = "Kitty",
         d = "Vivaldi",
         e = "ZenHub",
         l = "Google Calendar",

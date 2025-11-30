@@ -11,10 +11,16 @@ fi
 
 session "1"
 window "1" "1" "cd ~/Code/dotfiles2" "dotfiles"
-window "1" "2" "cd ~/.config/nvim && nvim init.lua" "nvim"
+window "1" "2" "cd ~/.config/nvim && nvim init.lua" "nvim init.lua"
 window "1" "3" "nvim ~/.tmux.conf" "tmux"
-window "1" "4" "cd ~/Scripts && nvim" "Scripts"
-window "1" "5" "nvim ~/.zshrc" "zshrc"
+window "1" "4" "nvim ~/.zshrc" "zshrc"
+window "1" "5" "cd ~/Scripts && nvim" "Scripts"
 [[ -n "$LINUX" ]] && window "1" "6" "nvim ~/.config/i3/config ~/Scripts/autostart ~/.config/polybar/config.ini ~/Scripts/tmux-init ~/Scripts/tmux-init-user" "wm"
+[[ -n "$MACOS" ]] && window "1" "6" "cd ~/.hammerspoon/ && nvim init.lua" "hammerspoon"
+window "1" "7" "cd ~/.config/kitty && nvim kitty.conf" "kitty"
+
+session "2"
+window "2" "1" "fastfetch" "scratch"
+window "2" "2" "cd ~/notes/workspaces/python && nvim main.py" "python"
 
 tmux attach
