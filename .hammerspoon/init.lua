@@ -13,6 +13,7 @@ do
         d = "Vivaldi",
         e = "ZenHub",
         l = "Google Calendar",
+        m = "Google Meet",
         [","] = "System Settings",
     }
 

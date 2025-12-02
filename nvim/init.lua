@@ -13,9 +13,7 @@ require("paq")({
 
     "bullets-vim/bullets.vim",
     "leafOfTree/vim-matchtag",
-    "justinmk/vim-matchparenalways",
 
-    "mg979/vim-visual-multi",
     "ika-musuko/vim-surround",
     "tpope/vim-repeat",
     "tpope/vim-abolish",
@@ -41,13 +39,15 @@ pcall(function()
     pcall(telescope.load_extension, "fzf")
 end)
 
-require("oil").setup({
-    float = {
-        border = "rounded",
-        max_width = 0.5,
-        max_height = 0.5,
-    }
-})
+pcall(function()
+    require("oil").setup({
+        float = {
+            border = "rounded",
+            max_width = 0.5,
+            max_height = 0.5,
+        }
+    })
+end)
 
 --- language indenting (MUST BE NEAR TOP)
 local function set_indent(opts)
@@ -175,43 +175,47 @@ vim.api.nvim_create_autocmd("FileType", {
 })
 
 -- treesitter
-require("nvim-treesitter").install({
-    "python",
-    "cpp",
-    "markdown",
-    "html",
-    "css",
-    "javascript",
-    "typescript",
-})
+pcall(function()
+    require("nvim-treesitter").install({
+        "python",
+        "cpp",
+        "markdown",
+        "html",
+        "css",
+        "javascript",
+        "typescript",
+    })
+end)
 
-vim.api.nvim_create_autocmd("FileType", {
-  callback = function(args)
-    local bufnr = args.buf
+pcall(function()
+    vim.api.nvim_create_autocmd("FileType", {
+        callback = function(args)
+            local bufnr = args.buf
 
-    if not vim.api.nvim_buf_is_loaded(bufnr) then
-      return
-    end
+            if not vim.api.nvim_buf_is_loaded(bufnr) then
+                return
+            end
 
-    if vim.bo[bufnr].buftype ~= "" then
-      return
-    end
+            if vim.bo[bufnr].buftype ~= "" then
+                return
+            end
 
-    local ok, parser = pcall(vim.treesitter.get_parser, bufnr, nil)
-    if not ok or not parser then
-      return
-    end
+            local ok, parser = pcall(vim.treesitter.get_parser, bufnr, nil)
+            if not ok or not parser then
+                return
+            end
 
-    pcall(vim.treesitter.start, bufnr)
+            pcall(vim.treesitter.start, bufnr)
 
-    local ok_indent = pcall(function()
-      vim.bo[bufnr].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
-    end)
-    if not ok_indent then
-      return
-    end
-  end,
-})
+            local ok_indent = pcall(function()
+                vim.bo[bufnr].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+            end)
+            if not ok_indent then
+                return
+            end
+        end,
+    })
+end)
 
 --- color scheme
 vim.o.termguicolors = false
@@ -490,23 +494,25 @@ end)
 
 --- plugin settings and keybindings
 -- telescope
-require("telescope").setup({
-    defaults = {
-        layout_config = {
-            horizontal = {
-                height = 0.8,
-            },
-            vertical = {
-                height = 0.8,
+pcall(function()
+    require("telescope").setup({
+        defaults = {
+            layout_config = {
+                horizontal = {
+                    height = 0.8,
+                },
+                vertical = {
+                    height = 0.8,
+                },
             },
         },
-    },
-    pickers = {
-        find_files = {
-            disable_devicons = false,
+        pickers = {
+            find_files = {
+                disable_devicons = false,
+            },
         },
-    },
-})
+    })
+end)
 
 local function file_opener()
     return require("telescope.builtin").find_files({ hidden = true })
@@ -669,7 +675,7 @@ end
 vim.keymap.set("", "<leader>M", show_messages_buffer)
 
 -- import a snippet from a snippet directory
-do
+pcall(function()
     local actions = require("telescope.actions")
     local action_state = require("telescope.actions.state")
     local pickers = require("telescope.pickers")
@@ -722,7 +728,7 @@ do
         }):find()
     end
     vim.keymap.set("", "<leader>n", snippet_manager)
-end
+end)
 
 -- GitHub links
 do
