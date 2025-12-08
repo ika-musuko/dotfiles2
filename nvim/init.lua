@@ -1,43 +1,55 @@
--- auto-install paq
-local install_path = vim.fn.stdpath("data") .. "/site/pack/paqs/start/paq-nvim"
-if vim.fn.empty(vim.fn.glob(install_path)) > 0 then
-    vim.fn.system({ "git", "clone", "--depth=1", "https://github.com/savq/paq-nvim", install_path })
-end
+-- requires neovim v0.12+
+vim.pack.add({
+    "https://github.com/nvim-tree/nvim-web-devicons",
+    "https://github.com/stevearc/oil.nvim",
+    "https://github.com/j-morano/buffer_manager.nvim",
+    "https://github.com/MagicDuck/grug-far.nvim",
 
-require("paq")({
-    "savq/paq-nvim",
+    "https://github.com/nvim-lua/plenary.nvim",
+    "https://github.com/nvim-telescope/telescope-fzf-native.nvim", --build = "make"
+    "https://github.com/nvim-telescope/telescope.nvim",
 
-    "stevearc/oil.nvim",
-    "j-morano/buffer_manager.nvim",
-    "MagicDuck/grug-far.nvim",
+    "https://github.com/bullets-vim/bullets.vim",
+    "https://github.com/leafOfTree/vim-matchtag",
+    "https://github.com/ika-musuko/vim-surround",
+    "https://github.com/tpope/vim-repeat",
+    "https://github.com/tpope/vim-abolish",
+    "https://github.com/tpope/vim-fugitive",
 
-    "bullets-vim/bullets.vim",
-    "leafOfTree/vim-matchtag",
-
-    "ika-musuko/vim-surround",
-    "tpope/vim-repeat",
-    "tpope/vim-abolish",
-    "tpope/vim-fugitive",
-
-    "nvim-lua/plenary.nvim",
-    "nvim-tree/nvim-web-devicons",
-    { "nvim-telescope/telescope-fzf-native.nvim", build = "make" },
-    "nvim-telescope/telescope.nvim",
-
-    "Shougo/context_filetype.vim",
-    { 'nvim-treesitter/nvim-treesitter', branch = "main", build = ":TSUpdate" },
-    "leafOfTree/vim-svelte-plugin",
-    "leafOfTree/vim-vue-plugin",
-    "terrastruct/d2-vim",
-    "zorab47/procfile.vim",
+    "https://github.com/nvim-treesitter/nvim-treesitter", -- branch = "main", build = ":TSUpdate"
+    "https://github.com/Shougo/context_filetype.vim",
+    "https://github.com/leafOfTree/vim-svelte-plugin",
+    "https://github.com/leafOfTree/vim-vue-plugin",
+    "https://github.com/terrastruct/d2-vim",
+    "https://github.com/zorab47/procfile.vim",
 })
 
 -- init
 pcall(function()
     local telescope = require("telescope")
-    telescope.setup({})
+    require("telescope").setup({
+        defaults = {
+            layout_config = {
+                horizontal = {
+                    height = 0.8,
+                },
+                vertical = {
+                    height = 0.8,
+                },
+            },
+        },
+        pickers = {
+            find_files = {
+                disable_devicons = false,
+            },
+        },
+    })
     pcall(telescope.load_extension, "fzf")
 end)
+
+pcall(function()
+end)
+
 
 pcall(function()
     require("oil").setup({
@@ -48,6 +60,19 @@ pcall(function()
         }
     })
 end)
+
+pcall(function()
+    require("nvim-treesitter").install({
+        "python",
+        "cpp",
+        "markdown",
+        "html",
+        "css",
+        "javascript",
+        "typescript",
+    })
+end)
+
 
 --- language indenting (MUST BE NEAR TOP)
 local function set_indent(opts)
@@ -134,59 +159,6 @@ vim.api.nvim_create_autocmd({"BufRead", "BufNewFile"}, {
 
 vim.g.vim_svelte_plugin_load_full_syntax = 1
 
--- keywordprg
-vim.api.nvim_create_autocmd("FileType", {
-    pattern = {
-        "vim",
-        "help"
-    },
-    callback = function()
-        vim.bo.keywordprg = ":help"
-    end,
-})
-
-vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
-    pattern = "init.lua",
-    callback = function()
-        vim.bo.keywordprg = ":help"
-    end,
-})
-
-vim.api.nvim_create_autocmd("FileType", {
-    pattern = {
-        "c",
-        "cpp",
-        "sh",
-        "bash",
-        "zsh",
-        "tmux.conf",
-        "kitty.conf"
-    },
-    callback = function()
-        vim.bo.keywordprg = "man"
-    end,
-})
-
-vim.api.nvim_create_autocmd("FileType", {
-    pattern = "python",
-    callback = function()
-        vim.bo.keywordprg = "python -m pydoc"
-    end,
-})
-
--- treesitter
-pcall(function()
-    require("nvim-treesitter").install({
-        "python",
-        "cpp",
-        "markdown",
-        "html",
-        "css",
-        "javascript",
-        "typescript",
-    })
-end)
-
 pcall(function()
     vim.api.nvim_create_autocmd("FileType", {
         callback = function(args)
@@ -255,10 +227,10 @@ do
     vim.api.nvim_set_hl(0, "Normal", { ctermfg = default, ctermbg = none })
 
     -- interface
-    vim.api.nvim_set_hl(0, "Visual", { ctermfg = none, ctermbg = "darkgray" })
+    vim.api.nvim_set_hl(0, "Visual", { ctermfg = none, ctermbg = brightwhite })
 
-    vim.api.nvim_set_hl(0, "StatusLine", { ctermfg = brightgreen, ctermbg = none })
-    vim.api.nvim_set_hl(0, "StatusLineNC", { ctermfg = brightblack, ctermbg = black })
+    vim.api.nvim_set_hl(0, "StatusLine", { ctermfg = green, ctermbg = brightblack })
+    vim.api.nvim_set_hl(0, "StatusLineNC", { ctermfg = none, ctermbg = brightblack })
 
     vim.api.nvim_set_hl(0, "Search", { ctermfg = black, ctermbg = yellow })
     vim.api.nvim_set_hl(0, "CurSearch", { ctermfg = black, ctermbg = green })
@@ -273,7 +245,7 @@ do
     vim.api.nvim_set_hl(0, "Identifier", { ctermfg = default })
     vim.api.nvim_set_hl(0, "Statement", { ctermfg = green })
     vim.api.nvim_set_hl(0, "Constant", { ctermfg = blue })
-    vim.api.nvim_set_hl(0, "Comment", { ctermfg = brightwhite })
+    vim.api.nvim_set_hl(0, "Comment", { ctermfg = brightgreen })
     vim.api.nvim_set_hl(0, "String", { ctermfg = brightmagenta })
     vim.api.nvim_set_hl(0, "Whitespace", { ctermfg = 8 })
     vim.api.nvim_set_hl(0, "Special", { ctermfg = yellow })
@@ -314,8 +286,6 @@ do
     vim.cmd("hi link cssCustomProp Normal")
 
     vim.cmd("hi link javaScript Normal")
-    vim.api.nvim_set_hl(0, "@function.call.javascript", { ctermfg = brightblue })
-    vim.api.nvim_set_hl(0, "@variable.member.javascript", { ctermfg = brightblue })
     vim.cmd("hi link javaScriptEmbed Normal")
     vim.cmd("hi link javaScriptBraces Normal")
     vim.cmd("hi link javaScriptMember Normal")
@@ -465,27 +435,6 @@ vim.keymap.set("", "<S-Right>", "8zl")
 vim.keymap.set("t", "<Esc>", "<C-\\><C-n>")
 
 
--- execute shell command to a new buffer
-do
-    local function run_shell_in_buffer(opts)
-        cmd = opts.fargs[1]
-        vim.cmd("r! " .. cmd)
-    end
-
-    local function run_shell_horizontal(opts)
-        vim.cmd("new")
-        run_shell_in_buffer(opts)
-    end
-
-    local function run_shell_vertical(opts)
-        vim.cmd("vnew")
-        run_shell_in_buffer(opts)
-    end
-
-    vim.api.nvim_create_user_command("C", run_shell_horizontal, { nargs = 1 })
-    vim.api.nvim_create_user_command("V", run_shell_vertical, { nargs = 1 })
-end
-
 -- disable search highlight
 vim.keymap.set("n", "g<Return>", function()
     vim.cmd("noh")
@@ -494,26 +443,6 @@ end)
 
 --- plugin settings and keybindings
 -- telescope
-pcall(function()
-    require("telescope").setup({
-        defaults = {
-            layout_config = {
-                horizontal = {
-                    height = 0.8,
-                },
-                vertical = {
-                    height = 0.8,
-                },
-            },
-        },
-        pickers = {
-            find_files = {
-                disable_devicons = false,
-            },
-        },
-    })
-end)
-
 local function file_opener()
     return require("telescope.builtin").find_files({ hidden = true })
 end
@@ -564,6 +493,7 @@ vim.keymap.set("", "<leader>f", grug_far)
 vim.keymap.set("", "<leader>m", mark_opener)
 vim.keymap.set("", "<leader>Y", copy_current_filepath)
 
+
 --- custom commands and keybindings
 -- uppercase corrections
 vim.api.nvim_create_user_command("Q", "q", {})
@@ -580,30 +510,6 @@ vim.keymap.set("", "<C-q>", ":bd!<CR>")
 vim.keymap.set("", "<leader>i", function()
     vim.cmd("Inspect")
 end)
-
--- cursor centering for easier prose writing
-vim.g.force_cursor_center = false
-
-local function toggle_cursor_center()
-    vim.g.force_cursor_center = not vim.g.force_cursor_center
-    if vim.g.force_cursor_center then
-        print("Cursor centering enabled")
-    else
-        print("Cursor centering disabled")
-    end
-end
-
-vim.api.nvim_create_autocmd({ "CursorMoved", "InsertLeave" }, {
-    pattern = "*",
-    callback = function()
-        if vim.g.force_cursor_center then
-            vim.api.nvim_command("normal! zz")
-        end
-    end,
-})
-
-vim.api.nvim_create_user_command("ToggleCenter", toggle_cursor_center, {})
-vim.keymap.set("", "<leader>c", ":ToggleCenter<CR>")
 
 -- set filetype shortcut
 vim.api.nvim_create_user_command("F", function(opts)
@@ -826,7 +732,6 @@ do
         open_in_browser(url)
     end
 
-    -- Mappings
-    vim.keymap.set("n", "<leader>g", function() OpenGitHubLink("commit") end,
-    { desc = "Open GitHub link (commit)" })
+
+    vim.api.nvim_create_user_command("Gh", function() OpenGitHubLink("commit") end, { nargs = 0 })
 end

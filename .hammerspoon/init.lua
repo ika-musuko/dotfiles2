@@ -9,9 +9,10 @@ end
 -- quick app open shortcuts
 do
     local shortcuts = {
+        e = "ZenHub",
+        [";"] = "YouTube Music",
         a = "Kitty",
         d = "Vivaldi",
-        e = "ZenHub",
         l = "Google Calendar",
         m = "Google Meet",
         [","] = "System Settings",
