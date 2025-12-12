@@ -49,7 +49,6 @@ done
 # Desktop env
 case "$OSTYPE" in
 	"darwin"*)
-		copy_file ~/.hammerspoon/init.lua .hammerspoon/init.lua
 		;;
 	*)
 		# x
