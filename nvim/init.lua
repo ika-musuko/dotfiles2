@@ -48,10 +48,6 @@ pcall(function()
 end)
 
 pcall(function()
-end)
-
-
-pcall(function()
     require("oil").setup({
         float = {
             border = "rounded",
@@ -62,14 +58,18 @@ pcall(function()
 end)
 
 pcall(function()
-    require("nvim-treesitter").install({
-        "python",
-        "cpp",
-        "markdown",
-        "html",
-        "css",
-        "javascript",
-        "typescript",
+    local treesitter_configs = require("nvim-treesitter.configs")
+    treesitter_configs.setup({
+        ensure_installed = {
+            "python",
+            "c",
+            "cpp",
+            "markdown",
+            "html",
+            "css",
+            "javascript",
+            "typescript",
+        },
     })
 end)
 
@@ -227,7 +227,7 @@ do
     vim.api.nvim_set_hl(0, "Normal", { ctermfg = default, ctermbg = none })
 
     -- interface
-    vim.api.nvim_set_hl(0, "Visual", { ctermfg = none, ctermbg = brightwhite })
+    vim.api.nvim_set_hl(0, "Visual", { ctermfg = none, ctermbg = brightblack })
 
     vim.api.nvim_set_hl(0, "StatusLine", { ctermfg = green, ctermbg = brightblack })
     vim.api.nvim_set_hl(0, "StatusLineNC", { ctermfg = none, ctermbg = brightblack })
@@ -372,6 +372,9 @@ vim.opt.undofile = true
 
 vim.opt.cursorline = true
 vim.opt.cursorlineopt = "number"
+
+vim.opt.title = true
+vim.opt.titlestring = "%f"
 
 --- native keybindings
 -- config keybindings and commands
