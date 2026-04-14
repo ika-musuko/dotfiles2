@@ -1,2 +1,152 @@
- #!/usr/bin/env bash
- git ls-files | xargs file | grep "text" | cut -d: -f1 | while read f; do echo "=== $f ===" && cat "$f" && echo; done
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Goal: produce a snapshot of *user-written source code* from a git repo.
+# Approach:
+#   1) only consider tracked files (git ls-files)
+#   2) exclude files marked linguist-vendored in .gitattributes
+#   3) exclude common non-source / generated / lock / snapshot files (explicit denylist)
+#   4) include only whitelisted "code" extensions (source allowlist)
+
+# --- configuration -----------------------------------------------------------
+
+# Explicit denylist (exact paths or basenames) for common non-source artifacts.
+# Add more entries as needed.
+denied_names=(
+  "uv.lock"
+  "poetry.lock"
+  "Pipfile.lock"
+  "package-lock.json"
+  "pnpm-lock.yaml"
+  "yarn.lock"
+  "bun.lockb"
+  "Cargo.lock"
+  "go.sum"
+  "composer.lock"
+  "Gemfile.lock"
+  "mix.lock"
+)
+
+# Denylist by path pattern (extended glob). These are usually non-user-written.
+# Requires bash extglob; enabled below.
+denied_globs=(
+  "node_modules/*"
+  "vendor/*"
+  "dist/*"
+  "build/*"
+  "out/*"
+  ".venv/*"
+  "venv/*"
+  "__pycache__/*"
+  ".git/*"
+  ".idea/*"
+  ".vscode/*"
+  "*.min.*"
+  "*.map"
+)
+
+# Allowlist of source-code extensions (lowercase). Adjust to your repo.
+allowed_exts=(
+  # general
+  "c" "h" "cc" "cpp" "cxx" "hpp" "hxx" "m" "mm"
+  "go" "rs" "java" "kt" "kts" "scala" "swift"
+  "py" "pyi" "rb" "php" "pl" "pm" "lua" "r"
+  "js" "jsx" "ts" "tsx" "mjs" "cjs"
+  "cs" "fs" "fsx" "vb"
+  "sh" "bash" "zsh" "ps1"
+  # web / config-as-code
+  "html" "htm" "css" "scss" "sass" "less"
+  "json" "yaml" "yml" "toml" "ini" "cfg"
+  "md" "rst"
+  "sql"
+  "dockerfile" "tf" "hcl"
+)
+
+# --- helpers ----------------------------------------------------------------
+
+shopt -s extglob
+
+in_array() {
+  local needle="$1"; shift
+  local item
+  for item in "$@"; do
+    [[ "$item" == "$needle" ]] && return 0
+  done
+  return 1
+}
+
+matches_any_glob() {
+  local path="$1"; shift
+  local g
+  for g in "$@"; do
+    [[ "$path" == $g ]] && return 0
+  done
+  return 1
+}
+
+is_allowed_extension() {
+  local path="$1"
+  local base ext
+
+  base="${path##*/}"
+
+  # Special-case common extensionless code files
+  case "$base" in
+    Dockerfile|Makefile|CMakeLists.txt) return 0 ;;
+  esac
+
+  # Extract extension (if any)
+  if [[ "$base" == *.* ]]; then
+    ext="${base##*.}"
+
+    # lowercase (portable; works on bash 3.2)
+    ext="$(printf '%s' "$ext" | tr '[:upper:]' '[:lower:]')"
+
+    in_array "$ext" "${allowed_exts[@]}" && return 0
+  fi
+
+  return 1
+}
+
+is_vendored_by_gitattributes() {
+  local path="$1"
+  local v
+  v="$(git check-attr linguist-vendored -- "$path" | awk '{print $3}')"
+  [[ "$v" == "set" || "$v" == "true" ]]
+}
+
+# --- main -------------------------------------------------------------------
+
+git ls-files -z \
+| while IFS= read -r -d '' f; do
+    base="${f##*/}"
+
+    # 1) exclude vendored files via .gitattributes
+    if is_vendored_by_gitattributes "$f"; then
+      continue
+    fi
+
+    # 2) explicit denylist (names)
+    if in_array "$base" "${denied_names[@]}" || in_array "$f" "${denied_names[@]}"; then
+      continue
+    fi
+
+    # 3) denylist (path globs)
+    if matches_any_glob "$f" "${denied_globs[@]}"; then
+      continue
+    fi
+
+    # 4) allowlist: only "code" by extension / special-case filenames
+    if ! is_allowed_extension "$f"; then
+      continue
+    fi
+
+    # 5) sanity: still ensure it's text (skip binaries even if extension matches)
+    if ! file -- "$f" | grep -q "text"; then
+      continue
+    fi
+
+    echo "=== $f ==="
+    cat -- "$f"
+    echo
+  done

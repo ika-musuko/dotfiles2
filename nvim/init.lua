@@ -374,7 +374,7 @@ vim.opt.cursorline = true
 vim.opt.cursorlineopt = "number"
 
 vim.opt.title = true
-vim.opt.titlestring = "%f"
+vim.opt.titlestring = "%F"
 
 --- native keybindings
 -- config keybindings and commands
@@ -583,6 +583,19 @@ function show_messages_buffer()
 end
 vim.keymap.set("", "<leader>M", show_messages_buffer)
 
+-- open current oil directory in finder
+vim.api.nvim_create_user_command("OilFinder", function()
+    local ok, oil = pcall(require, "oil")
+    if ok then
+        local dir = oil.get_current_dir()
+        if dir then
+            vim.fn.system({ "open", dir })
+            return
+        end
+    end
+    vim.fn.system({ "open", vim.fn.getcwd() })
+end, {})
+
 -- import a snippet from a snippet directory
 pcall(function()
     local actions = require("telescope.actions")
@@ -737,4 +750,315 @@ do
 
 
     vim.api.nvim_create_user_command("Gh", function() OpenGitHubLink("commit") end, { nargs = 0 })
+end
+
+--- Custom Tree File Navigator
+do
+    local ns = vim.api.nvim_create_namespace("custom_tree")
+    local tree_buf = nil
+    local expanded_dirs = {}
+    local extmark_map = {} -- Stores id -> { path, type } mapping
+    local tree_cwd = ""
+
+    local fs_watchers = {}
+    local redraw_timer = nil
+
+    local function clear_watchers()
+        for _, watcher in ipairs(fs_watchers) do
+            if watcher and not watcher:is_closing() then
+                watcher:stop()
+                watcher:close()
+            end
+        end
+        fs_watchers = {}
+    end
+
+    local draw_tree -- Forward declaration
+
+    -- Redraw debouncer to prevent flickering on bulk edits
+    local function debounced_redraw()
+        if redraw_timer then
+            redraw_timer:stop()
+            redraw_timer:close()
+        end
+        redraw_timer = vim.uv.new_timer()
+        redraw_timer:start(50, 0, vim.schedule_wrap(function()
+            if tree_buf and vim.api.nvim_buf_is_valid(tree_buf) then
+                -- Only redraw if the user hasn't made unsaved edits
+                if not vim.bo[tree_buf].modified then
+                    draw_tree()
+                end
+            else
+                clear_watchers()
+            end
+        end))
+    end
+
+    local function setup_watchers()
+        clear_watchers()
+        if not tree_cwd or tree_cwd == "" then return end
+
+        local dirs_to_watch = { tree_cwd }
+        for dir, is_expanded in pairs(expanded_dirs) do
+            if is_expanded then table.insert(dirs_to_watch, dir) end
+        end
+
+        for _, dir in ipairs(dirs_to_watch) do
+            local watcher = vim.uv.new_fs_event()
+            if watcher then
+                watcher:start(dir, {}, function(err, filename, events)
+                    if err then return end
+                    debounced_redraw()
+                end)
+                table.insert(fs_watchers, watcher)
+            end
+        end
+    end
+
+    -- Fetch directory tree lines recursively
+    local function get_tree_lines(dir, depth)
+        local lines = {}
+        local meta = {}
+
+        local handle = vim.uv.fs_scandir(dir)
+        if not handle then return lines, meta end
+
+        local entries = {}
+        while true do
+            local name, type = vim.uv.fs_scandir_next(handle)
+            if not name then break end
+            table.insert(entries, { name = name, type = type })
+        end
+
+        -- Sort: directories first, then files alphabetically
+        table.sort(entries, function(a, b)
+            if a.type == b.type then return a.name < b.name end
+            return a.type == "directory"
+        end)
+
+        for _, entry in ipairs(entries) do
+            local path = dir .. "/" .. entry.name
+            local is_dir = entry.type == "directory"
+            local line_str = string.rep("  ", depth) .. entry.name .. (is_dir and "/" or "")
+
+            table.insert(lines, line_str)
+            table.insert(meta, { path = path, type = entry.type, depth = depth, name = entry.name })
+
+            if is_dir and expanded_dirs[path] then
+                local sub_lines, sub_meta = get_tree_lines(path, depth + 1)
+                for _, l in ipairs(sub_lines) do table.insert(lines, l) end
+                for _, m in ipairs(sub_meta) do table.insert(meta, m) end
+            end
+        end
+
+        return lines, meta
+    end
+
+    -- Render the tree into the buffer and attach extmarks
+    draw_tree = function()
+        if not tree_buf or not vim.api.nvim_buf_is_valid(tree_buf) then return end
+
+        local lines, meta = get_tree_lines(tree_cwd, 0)
+
+        vim.bo[tree_buf].modifiable = true
+        vim.api.nvim_buf_set_lines(tree_buf, 0, -1, false, lines)
+        vim.api.nvim_buf_clear_namespace(tree_buf, ns, 0, -1)
+
+        extmark_map = {}
+        local has_devicons, devicons = pcall(require, "nvim-web-devicons")
+
+        for i, m in ipairs(meta) do
+            local is_dir = m.type == "directory"
+            local icon, icon_hl
+            local text_hl = is_dir and "Directory" or "Normal"
+
+            if is_dir then
+                icon = expanded_dirs[m.path] and "▼ " or "▶ "
+                icon_hl = "Directory"
+            else
+                if has_devicons then
+                    local ext = m.name:match("^.+%.(.+)$") or ""
+                    local devicon, devhl = devicons.get_icon(m.name, ext, { default = true })
+                    icon = (devicon or "📄") .. " "
+                    icon_hl = devhl or "Normal"
+                else
+                    icon = "📄 "
+                    icon_hl = "Normal"
+                end
+            end
+
+            local indent_len = m.depth * 2
+            local id = vim.api.nvim_buf_set_extmark(tree_buf, ns, i - 1, indent_len, {
+                virt_text = { { icon, icon_hl } },
+                virt_text_pos = "inline",
+                hl_group = text_hl,
+                end_row = i - 1,
+                end_col = indent_len + #m.name + (is_dir and 1 or 0),
+            })
+            extmark_map[id] = m
+        end
+
+        vim.bo[tree_buf].modified = false
+        setup_watchers()
+    end
+
+    -- Handle <CR> on a node
+    local function toggle_or_open()
+        local cursor = vim.api.nvim_win_get_cursor(0)
+        local row = cursor[1] - 1
+        local extmarks = vim.api.nvim_buf_get_extmarks(tree_buf, ns, {row, 0}, {row, -1}, {})
+
+        if #extmarks == 0 then return end
+        local id = extmarks[1][1]
+        local m = extmark_map[id]
+
+        if not m then return end
+
+        if m.type == "directory" then
+            expanded_dirs[m.path] = not expanded_dirs[m.path]
+            draw_tree()
+            vim.api.nvim_win_set_cursor(0, cursor)
+        else
+            vim.cmd("wincmd p") -- Return to previous window
+            vim.cmd("e " .. vim.fn.fnameescape(m.path))
+        end
+    end
+
+    -- Perform file operations (Create, Rename, Delete) like oil.nvim
+    local function apply_changes()
+        local lines = vim.api.nvim_buf_get_lines(tree_buf, 0, -1, false)
+        local current_extmarks = vim.api.nvim_buf_get_extmarks(tree_buf, ns, 0, -1, { details = true })
+
+        local seen_ids = {}
+        local line_to_id = {}
+        for _, mark in ipairs(current_extmarks) do
+            local id, row = mark[1], mark[2]
+            seen_ids[id] = true
+            line_to_id[row] = id
+        end
+
+        -- 1. Handle Deletions (Extmark existed, but line was removed)
+        for id, m in pairs(extmark_map) do
+            if not seen_ids[id] then
+                if vim.fn.delete(m.path, "rf") ~= 0 then
+                    vim.notify("Failed to delete " .. m.path, vim.log.levels.ERROR)
+                else
+                    vim.notify("Deleted " .. m.path, vim.log.levels.INFO)
+                end
+            end
+        end
+
+        -- 2. Handle Renames, Moves, and Creations
+        local stack = { [0] = tree_cwd }
+        for row, line in ipairs(lines) do
+            if line:match("%S") then
+                local indent_str = line:match("^(%s*)")
+                local indent = #indent_str
+                local depth = math.floor(indent / 2)
+
+                local name = line:sub(indent + 1)
+                local is_dir = false
+                if name:sub(-1) == "/" then
+                    is_dir = true
+                    name = name:sub(1, -2)
+                end
+
+                local parent_path = stack[depth] or tree_cwd
+                local new_path = parent_path .. "/" .. name
+                stack[depth + 1] = new_path
+
+                local id = line_to_id[row - 1]
+                if id and extmark_map[id] then
+                    -- Existed previously -> Check for rename or move
+                    local old_path = extmark_map[id].path
+                    if old_path ~= new_path then
+                        local success, err = vim.uv.fs_rename(old_path, new_path)
+                        if success then
+                            vim.notify("Renamed to " .. new_path, vim.log.levels.INFO)
+                            -- Update state if moving expanded directory
+                            if extmark_map[id].type == "directory" and expanded_dirs[old_path] then
+                                expanded_dirs[old_path] = nil
+                                expanded_dirs[new_path] = true
+                            end
+                        else
+                            vim.notify("Failed to rename: " .. err, vim.log.levels.ERROR)
+                        end
+                    end
+                else
+                    -- No Extmark -> New line -> Create file/dir
+                    if is_dir then
+                        vim.fn.mkdir(new_path, "p")
+                        vim.notify("Created directory " .. new_path, vim.log.levels.INFO)
+                    else
+                        local fd = vim.uv.fs_open(new_path, "w", 438) -- 0666
+                        if fd then
+                            vim.uv.fs_close(fd)
+                            vim.notify("Created file " .. new_path, vim.log.levels.INFO)
+                        end
+                    end
+                end
+            end
+        end
+
+        draw_tree()
+    end
+
+    local function open_tree()
+        tree_cwd = vim.fn.getcwd()
+
+        if tree_buf and vim.api.nvim_buf_is_valid(tree_buf) then
+            local win = vim.fn.bufwinnr(tree_buf)
+            if win ~= -1 then
+                vim.cmd(win .. "wincmd w")
+                return
+            end
+            vim.cmd("vsplit")
+            vim.api.nvim_win_set_buf(0, tree_buf)
+            draw_tree()
+            return
+        end
+
+        tree_buf = vim.api.nvim_create_buf(false, true)
+        vim.bo[tree_buf].buftype = "acwrite"
+        vim.bo[tree_buf].filetype = "custom_tree"
+        vim.bo[tree_buf].swapfile = false
+
+        -- Clean up watchers on wipeout
+        vim.api.nvim_create_autocmd("BufWipeout", {
+            buffer = tree_buf,
+            callback = function()
+                clear_watchers()
+                if redraw_timer then
+                    redraw_timer:stop()
+                    redraw_timer:close()
+                    redraw_timer = nil
+                end
+            end
+        })
+
+        -- Keymaps local to tree
+        vim.keymap.set("n", "<CR>", toggle_or_open, { buffer = tree_buf, desc = "Toggle dir or open file" })
+        vim.keymap.set("n", "q", ":bd<CR>", { buffer = tree_buf, silent = true, desc = "Close tree" })
+
+        -- Hijack :w to apply modifications to filesystem
+        vim.api.nvim_create_autocmd("BufWriteCmd", {
+            buffer = tree_buf,
+            callback = function()
+                apply_changes()
+            end,
+        })
+
+        vim.cmd("vsplit")
+        vim.api.nvim_win_set_buf(0, tree_buf)
+
+        -- Buffer visuals
+        vim.opt_local.wrap = false
+        vim.opt_local.number = false
+        vim.opt_local.relativenumber = false
+        vim.opt_local.cursorline = true
+
+        draw_tree()
+    end
+
+    vim.keymap.set("n", "<leader>t", open_tree, { desc = "Open Custom Tree Navigator" })
 end
