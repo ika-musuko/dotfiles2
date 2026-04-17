@@ -2,6 +2,8 @@
 vim.pack.add({
     "https://github.com/nvim-tree/nvim-web-devicons",
     "https://github.com/stevearc/oil.nvim",
+    "https://github.com/nvim-neo-tree/neo-tree.nvim",
+    "https://github.com/MunifTanjim/nui.nvim",
     "https://github.com/j-morano/buffer_manager.nvim",
     "https://github.com/MagicDuck/grug-far.nvim",
 
@@ -54,6 +56,14 @@ pcall(function()
             max_width = 0.5,
             max_height = 0.5,
         }
+    })
+end)
+
+pcall(function()
+    require("neo-tree").setup({
+      filesystem = {
+        use_libuv_file_watcher = true,
+      },
     })
 end)
 
