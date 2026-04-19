@@ -71,7 +71,7 @@ esac
 
 # terminal
 copy_file ~/.config/kitty/kitty.conf kitty/kitty.conf
-copy_file ~/.tmux.conf .tmux.conf
+copy_file ~/.config/tmux/tmux.conf tmux/tmux.conf
 
 # editor
 copy_file ~/.config/nvim/init.lua nvim/init.lua
