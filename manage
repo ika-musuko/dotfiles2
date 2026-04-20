@@ -12,8 +12,10 @@ copy_file() {
     SRC="$1"
     DEST="$2"
     if [ "$MODE" = "pull" ]; then
+        mkdir -p "$(dirname "$DEST")"
         cp "$SRC" "$DEST"
     elif [ "$MODE" = "push" ]; then
+        mkdir -p "$(dirname "$SRC")"
         cp "$DEST" "$SRC"
     else
         echo "Invalid mode: $MODE"
@@ -78,3 +80,14 @@ copy_file ~/.config/nvim/init.lua nvim/init.lua
 
 # browser
 copy_file ~/.config/vivaldi/appearance.css vivaldi/appearance.css
+
+# claude
+copy_file ~/.claude/settings.json claude/settings.json
+copy_file ~/.claude/CLAUDE.md claude/CLAUDE.md
+copy_file ~/.claude/statusline.sh claude/statusline.sh
+for h in \
+    claude-notify.sh \
+    notify-daemon.sh
+do
+    copy_file ~/.claude/hooks/$h claude/hooks/$h
+done

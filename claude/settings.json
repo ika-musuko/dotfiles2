@@ -1,0 +1,60 @@
+{
+  "model": "opus",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "themes=(\"dark\" \"light\" \"system\"); theme=${themes[$RANDOM % ${#themes[@]}]}; jq --arg t \"$theme\" '.theme = $t' ~/.claude/settings.json > /tmp/claude-settings-tmp.json && mv /tmp/claude-settings-tmp.json ~/.claude/settings.json"
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/claude-notify.sh notification"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/claude-notify.sh stop"
+          }
+        ]
+      }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "$HOME/.claude/statusline.sh"
+  },
+  "enabledPlugins": {
+    "typescript-lsp@claude-plugins-official": true,
+    "pyright-lsp@claude-plugins-official": true,
+    "codex@openai-codex": true,
+    "rust-analyzer-lsp@claude-plugins-official": true,
+    "frontend-design@claude-plugins-official": true
+  },
+  "extraKnownMarketplaces": {
+    "openai-codex": {
+      "source": {
+        "source": "github",
+        "repo": "openai/codex-plugin-cc"
+      }
+    }
+  },
+  "feedbackSurveyRate": 0,
+  "effortLevel": "medium",
+  "skipAutoPermissionPrompt": true,
+  "theme": "dark"
+}
